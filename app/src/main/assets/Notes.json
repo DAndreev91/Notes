@@ -1,0 +1,90 @@
+[
+  {
+    "title": "Active",
+    "desc": "",
+    "isChecked": false,
+    "isFuture": false,
+    "doneDate": null,
+    "isSection": true
+  },
+  {
+    "title": "Cupcake",
+    "desc": "Android 1.5",
+    "isChecked": false,
+    "isFuture": false,
+    "doneDate": "2022-07-21",
+    "isSection": false
+  },
+  {
+    "title": "Birthday",
+    "desc": "04072021",
+    "isChecked": false,
+    "isFuture": false,
+    "doneDate": null,
+    "isSection": false
+  },
+  {
+    "title": "Note to note",
+    "desc": "Remember",
+    "isChecked": false,
+    "isFuture": false,
+    "doneDate": null,
+    "isSection": false
+  },
+  {
+    "title": "",
+    "desc": "Empty title",
+    "isChecked": false,
+    "isFuture": false,
+    "doneDate": null,
+    "isSection": false
+  },
+  {
+    "title": "What you're gonna do when they come for you",
+    "desc": "Nothing",
+    "isChecked": false,
+    "isFuture": false,
+    "doneDate": null,
+    "isSection": false
+  },
+  {
+    "title": "Empty desc",
+    "desc": "",
+    "isChecked": false,
+    "isFuture": false,
+    "doneDate": null,
+    "isSection": false
+  },
+  {
+    "title": "Lower bar",
+    "desc": "Higher ground",
+    "isChecked": false,
+    "isFuture": false,
+    "doneDate": null,
+    "isSection": false
+  },
+  {
+    "title": "Foo",
+    "desc": "bar",
+    "isChecked": false,
+    "isFuture": false,
+    "doneDate": null,
+    "isSection": false
+  },
+  {
+    "title": "Planned",
+    "desc": "",
+    "isChecked": false,
+    "isFuture": false,
+    "doneDate": null,
+    "isSection": true
+  },
+  {
+    "title": "Done",
+    "desc": "",
+    "isChecked": true,
+    "isFuture": false,
+    "doneDate": null,
+    "isSection": true
+  }
+]
