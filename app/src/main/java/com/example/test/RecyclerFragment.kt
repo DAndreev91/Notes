@@ -100,20 +100,31 @@ class RecyclerFragment: Fragment() {
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder
             ): Int {
-                if (noteViewModel.noteList[viewHolder.adapterPosition].isSection) {
+                try {
+                    if (noteViewModel.noteList[viewHolder.adapterPosition].isSection) {
+                        return 0
+                    }
+                    return super.getDragDirs(recyclerView, viewHolder)
+                } catch (e:IndexOutOfBoundsException) {
+                    // In case of changing list inside coroutine bc i don't know how send signal from within coroutine
                     return 0
                 }
-                return super.getDragDirs(recyclerView, viewHolder)
+
             }
 
             override fun getSwipeDirs(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder
             ): Int {
-                if (noteViewModel.noteList[viewHolder.adapterPosition].isSection) {
+                try {
+                    if (noteViewModel.noteList[viewHolder.adapterPosition].isSection) {
+                        return 0
+                    }
+                    return super.getSwipeDirs(recyclerView, viewHolder)
+                } catch (e:IndexOutOfBoundsException) {
+                    // In case of changing list inside coroutine bc i don't know how send signal from within coroutine
                     return 0
                 }
-                return super.getSwipeDirs(recyclerView, viewHolder)
             }
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {

@@ -1,6 +1,8 @@
 package com.example.test
 
 import android.app.Application
+import android.content.Context
+import android.os.Environment
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
@@ -46,7 +48,7 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
         doneDate = nullDateStr,
         isSection = true
     )
-    private val hoursBeforeArchiving = 42
+    private val hoursBeforeArchiving = 16
 
 
     inner class NoteState(var prePos: Int, var postPos: Int, var isSectionChanged: Boolean, var sectionPrePos: Int, var sectionPostPos: Int)
@@ -71,9 +73,7 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
                     it.doneDate = SimpleDateFormat("dd.MM.yyyy", Locale.GERMAN).format(Date())
                 }
             } else {
-                if (it.isSection) {
-                    it.doneDate = nullDateStr
-                }
+                it.doneDate = nullDateStr
             }
         }
     }
@@ -150,7 +150,7 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
 
     // Adding sections no main list when they lost after collapses =)
     private fun addMainSections() {
-        if (noteList[0].title != "Active" && !noteList[0].isSection) {
+        if (noteList.getOrNull(0)?.title != "Active" && (noteList.getOrNull(0)?.isSection != true)) {
             noteList.add(0, activeSection)
         }
         if (noteList.indexOf(plannedSection) == -1) {
@@ -339,18 +339,26 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun writeToAssets() {
+        // don't change notes list here
+        /*
         viewModelScope.launch {
             moveNotesToArchive()
         }
+        */
 
         writeToAsset(noteList, mainListFileName)
         writeToAsset(noteArchiveList, archiveListFileName)
     }
 
     private fun writeToAsset(list: MutableList<Note>, fileName: String) {
-        val gson = GsonBuilder().create()
-        val str = gson.toJson(list)
-        writeToFile(str, fileName)
+        try {
+            val gson = GsonBuilder().create()
+            val str = gson.toJson(list)
+            writeToFile(str, fileName)
+        } catch (e:ConcurrentModificationException) {
+            // if someone change MutableList when we tryine to save then just save later
+            Log.e("ConcurrentModificationException", e.stackTraceToString())
+        }
     }
 
     private fun writeToFile(s: String, fileName: String) {
@@ -359,6 +367,13 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
             file.createNewFile()
         }
         file.writeText(s)
+
+        Log.e("File dir",
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+                .toString()
+        )
+
+        File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), fileName).writeText(s)
     }
 
     private fun readFromFile(fileName: String): String {
