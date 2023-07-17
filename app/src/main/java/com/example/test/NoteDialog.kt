@@ -7,6 +7,7 @@ import android.graphics.Color
 import android.os.Bundle
 import android.text.InputType
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.ViewModelProvider
 import com.example.test.databinding.NoteIuBinding
 
 class NoteDialog: DialogFragment() {
@@ -14,6 +15,7 @@ class NoteDialog: DialogFragment() {
     private var notePosition: Int = -1
     private var isEditable = true
     private lateinit var binding: NoteIuBinding
+    lateinit var noteViewModel: NoteViewModel
 
     fun setDialogNote(noteSend: Note, notePos: Int) {
         note = noteSend
@@ -21,6 +23,7 @@ class NoteDialog: DialogFragment() {
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        noteViewModel = ViewModelProvider(requireActivity())[NoteViewModel::class.java]
         binding = NoteIuBinding.inflate(layoutInflater)
         //binding.noteTitle.setText(note.title)
         binding.noteDesc.setText(note.desc)
@@ -42,7 +45,8 @@ class NoteDialog: DialogFragment() {
     override fun onCancel(dialog: DialogInterface) {
         if (isEditable) {
             note.desc = binding.noteDesc.text.toString()
-            RecyclerFragment.getInstance().noteViewModel.addNote(notePosition, note)
+
+            noteViewModel.addNote(notePosition, note)
         }
         super.onDismiss(dialog)
     }
