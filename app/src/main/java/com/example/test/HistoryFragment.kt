@@ -83,6 +83,10 @@ class HistoryFragment : Fragment() {
         return binding.root
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+    }
+
     override fun onPause() {
         noteViewModel.writeToAssets()
         super.onPause()

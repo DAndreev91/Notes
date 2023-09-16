@@ -1,7 +1,6 @@
 package com.example.test
 
 import android.app.Application
-import android.content.Context
 import android.os.Environment
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
@@ -12,11 +11,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.lang.Exception
-import java.lang.IllegalArgumentException
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.NoSuchElementException
+
 
 class NoteViewModel(application: Application) : AndroidViewModel(application) {
     var noteList: MutableList<Note>
@@ -48,7 +45,7 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
         doneDate = nullDateStr,
         isSection = true
     )
-    private val hoursBeforeArchiving = 16
+    private val hoursBeforeArchiving = 0.01
 
 
     inner class NoteState(var prePos: Int, var postPos: Int, var isSectionChanged: Boolean, var sectionPrePos: Int, var sectionPostPos: Int)
@@ -368,7 +365,7 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
         }
         file.writeText(s)
 
-        Log.e("File dir",
+        Log.d("File dir",
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
                 .toString()
         )
