@@ -51,6 +51,8 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
     inner class NoteState(var prePos: Int, var postPos: Int, var isSectionChanged: Boolean, var sectionPrePos: Int, var sectionPostPos: Int)
 
     init {
+        initData(mainListFileName)
+        initData(archiveListFileName)
         noteList = getListData(mainListFileName)
         noteArchiveList = getListData(archiveListFileName)
         noteList.refreshDoneDate()
@@ -333,6 +335,19 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
 
         val gson = GsonBuilder().create()
         return gson.fromJson(text, Array<Note>::class.java).toMutableList()
+    }
+
+    private fun readDataFromExtStorage(fileName: String): String {
+        return  File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), fileName).readText()
+    }
+
+    private fun initData(fileName: String) {
+        val text = readDataFromExtStorage(fileName)
+        val file = File(getApplication<Application>().filesDir, fileName)
+        if (!file.exists()) {
+            file.createNewFile()
+        }
+        file.writeText(text)
     }
 
     fun writeToAssets() {
