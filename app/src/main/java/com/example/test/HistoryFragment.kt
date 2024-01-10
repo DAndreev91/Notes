@@ -92,7 +92,7 @@ class HistoryFragment : Fragment() {
         super.onPause()
     }
 
-    private fun openDialog (note: Note, pos: Int) {
+    private fun openDialog (note: com.example.test.Note, pos: Int) {
         val dialog = NoteDialog()
         dialog.setDialogNote(note, pos)
         dialog.setTextNonEditable()
