@@ -1,11 +1,13 @@
 package com.example.test
 
 import android.annotation.SuppressLint
+import android.app.Application
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -19,7 +21,12 @@ class HistoryFragment : Fragment() {
 
     private lateinit var binding: FragmentHistoryBinding
     private var adapter: NoteAdapter? = null
-    lateinit var noteViewModel: NoteViewModel
+    private val noteViewModel: NoteViewModel by activityViewModels {
+        NoteViewModelFactory(
+            (activity?.application as NoteApplication).database.noteDao(),
+            activity?.application as NoteApplication
+        )
+    }
 
     @SuppressLint("NotifyDataSetChanged")
     override fun onCreateView(
@@ -27,7 +34,6 @@ class HistoryFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        noteViewModel = ViewModelProvider(requireActivity())[NoteViewModel::class.java]
         binding = FragmentHistoryBinding.inflate(layoutInflater)
 
         adapter = NoteAdapter(noteViewModel.noteArchive.value!!, { pos -> openDialog(noteViewModel.noteArchiveList[pos], pos)}, {adapter?.notifyItemChanged(it)})

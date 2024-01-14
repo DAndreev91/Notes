@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -20,7 +21,12 @@ import java.util.*
 class RecyclerFragment: Fragment() {
     private lateinit var binding: FragmentRecyclerBinding
     private var adapter: NoteAdapter? = null
-    lateinit var noteViewModel: NoteViewModel
+    private val noteViewModel: NoteViewModel by activityViewModels {
+        NoteViewModelFactory(
+            (activity?.application as NoteApplication).database.noteDao(),
+            activity?.application as NoteApplication
+        )
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -28,7 +34,6 @@ class RecyclerFragment: Fragment() {
         savedInstanceState: Bundle?
     ): View {
         //super.onViewCreated(view, savedInstanceState)
-        noteViewModel = ViewModelProvider(requireActivity())[NoteViewModel::class.java]
         binding = FragmentRecyclerBinding.inflate(layoutInflater)
 
         adapter = NoteAdapter(noteViewModel.noteList, { pos -> openDialog(noteViewModel.noteList[pos], pos)}, { noteViewModel.toggleCheckNote(it) })

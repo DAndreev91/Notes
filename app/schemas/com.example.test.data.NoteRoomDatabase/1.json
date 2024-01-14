@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "089a72de201b014a09e4a42a2e636b61",
+    "identityHash": "0a83d7c89b2827be9df3d0d68972fce6",
     "entities": [
       {
         "tableName": "notes",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `is_checked` INTEGER NOT NULL, `is_future` INTEGER NOT NULL, `done_date` TEXT NOT NULL, `is_section` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `is_checked` INTEGER NOT NULL, `is_future` INTEGER NOT NULL, `done_date` TEXT NOT NULL, `is_section` INTEGER NOT NULL, `position` INTEGER NOT NULL, `section` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -49,6 +49,18 @@
             "columnName": "is_section",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "pos",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "section",
+            "columnName": "section",
+            "affinity": "TEXT",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -64,7 +76,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '089a72de201b014a09e4a42a2e636b61')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0a83d7c89b2827be9df3d0d68972fce6')"
     ]
   }
 }

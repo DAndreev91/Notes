@@ -12,5 +12,7 @@ data class Note (
     @ColumnInfo(name = "is_checked") val isChecked: Boolean,
     @ColumnInfo(name = "is_future") val isFuture: Boolean,
     @ColumnInfo(name = "done_date") val doneDate: String,
-    @ColumnInfo(name = "is_section") val isSection: Boolean
+    @ColumnInfo(name = "is_section") val isSection: Boolean,
+    @ColumnInfo("position") val pos: Int,
+    @ColumnInfo("section") val section: String
 )

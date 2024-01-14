@@ -4,8 +4,13 @@ import android.app.Application
 import android.os.Environment
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import com.example.test.data.NoteDao
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -15,14 +20,20 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 
-class NoteViewModel(application: Application) : AndroidViewModel(application) {
+
+class NoteViewModel(private val noteDao: NoteDao, application: Application) : AndroidViewModel(application) {
+
+    val allNotes: LiveData<List<com.example.test.data.Note>> = noteDao.getNotes().asLiveData()
+
     var noteList: MutableList<Note>
     var noteArchiveList: MutableList<Note>
     private lateinit var noteTempList: MutableList<Note>
     private val mainListFileName = "QueueFile.txt"
     private val archiveListFileName = "QueueArchiveFile.txt"
+
     var notePosChange: MutableLiveData<NoteState> = MutableLiveData()
     var noteArchive: MutableLiveData<MutableList<Note>> = MutableLiveData()
+
     private var deleteNotePos: Int = -1
     private lateinit var deleteNote: Note
     private val noteState = NoteState(-1,-1, false, 0, 0)
@@ -405,4 +416,15 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
         return noteList.subList(doneSectionPos, noteList.size).toMutableList()
     }
      */
+}
+
+class NoteViewModelFactory(private val noteDao: NoteDao, private val application: Application): ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(NoteViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return NoteViewModel(noteDao, application) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+
 }
