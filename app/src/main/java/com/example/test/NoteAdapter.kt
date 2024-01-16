@@ -10,10 +10,16 @@ import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 
-class NoteAdapter(private val noteList: MutableList<Note>, val cardClick: (Int) -> Unit, val checkClick: (Int) -> Unit): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class NoteAdapter(val cardClick: (Int) -> Unit, val checkClick: (Int) -> Unit): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private val SECTION_VIEW= 0
     private val CONTENT_VIEW = 1
+
+    private var noteList: MutableList<Note>? = null
+
+    fun submitList(list: MutableList<Note>) {
+        noteList = list
+    }
 
     inner class NoteHolder(view: View): RecyclerView.ViewHolder(view) {
         //val noteTitle = view.findViewById<TextView>(R.id.noteTitle)!!
@@ -38,7 +44,7 @@ class NoteAdapter(private val noteList: MutableList<Note>, val cardClick: (Int) 
     }
 
     override fun getItemViewType(position: Int): Int {
-        return if (noteList[position].isSection) {
+        return if (noteList?.get(position)?.isSection == true) {
             SECTION_VIEW
         } else {
             CONTENT_VIEW
@@ -54,11 +60,12 @@ class NoteAdapter(private val noteList: MutableList<Note>, val cardClick: (Int) 
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        val note = noteList?.get(position)
         if (getItemViewType(position) == SECTION_VIEW ) {
-            (holder as SectionHolder).sectionTitle.text = noteList[position].title
-            if (noteList.size <= position+1) {
+            (holder as SectionHolder).sectionTitle.text = note?.title
+            if ((noteList?.size ?: 0) <= position + 1) {
                 holder.textHolder.visibility = View.VISIBLE
-            } else if (noteList[position+1].isSection) {
+            } else if (noteList?.get(position+1)?.isSection == true) {
                 holder.textHolder.visibility = View.VISIBLE
             } else {
                 holder.textHolder.visibility = View.GONE
@@ -75,8 +82,8 @@ class NoteAdapter(private val noteList: MutableList<Note>, val cardClick: (Int) 
             noteHolder.noteTitle.visibility = View.VISIBLE
         }
          */
-        noteHolder.noteDesc.text = noteList[position].desc// + ";" + noteList[position].doneDate
-        noteHolder.noteIsChecked.isChecked = noteList[position].isChecked
+        noteHolder.noteDesc.text = note?.desc// + ";" + noteList[position].doneDate
+        noteHolder.noteIsChecked.isChecked = note?.isChecked == true
 
         // set text color to gray when note is checked
         if (noteHolder.noteIsChecked.isChecked) {
@@ -84,7 +91,7 @@ class NoteAdapter(private val noteList: MutableList<Note>, val cardClick: (Int) 
         } else {
             noteHolder.cardView.alpha = 1f
         }
-        if (noteList[position].isFuture) {
+        if (note?.isFuture == true) {
             noteHolder.noteDesc.setTextColor(Color.LTGRAY)
             noteHolder.noteDesc.setTypeface(null, Typeface.ITALIC)
         } else {
@@ -94,7 +101,7 @@ class NoteAdapter(private val noteList: MutableList<Note>, val cardClick: (Int) 
     }
 
     override fun getItemCount(): Int {
-        return noteList.size
+        return noteList?.size ?: 0
     }
 
 }

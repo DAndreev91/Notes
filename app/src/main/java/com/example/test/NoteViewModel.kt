@@ -9,6 +9,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.asLiveData
+import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import com.example.test.data.NoteDao
 import com.google.gson.GsonBuilder
@@ -23,10 +24,10 @@ import java.util.*
 
 class NoteViewModel(private val noteDao: NoteDao, application: Application) : AndroidViewModel(application) {
 
-    val allNotes: LiveData<List<com.example.test.data.Note>> = noteDao.getNotes().asLiveData()
+    val allNotes:LiveData<List<com.example.test.data.Note>> = noteDao.getNotes().asLiveData()
 
-    var noteList: MutableList<Note>
-    var noteArchiveList: MutableList<Note>
+    lateinit var noteList: MutableList<Note>
+    lateinit var noteArchiveList: MutableList<Note>
     private lateinit var noteTempList: MutableList<Note>
     private val mainListFileName = "QueueFile.txt"
     private val archiveListFileName = "QueueArchiveFile.txt"
@@ -58,18 +59,23 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
     )
     private val hoursBeforeArchiving = 0.01
 
-
     inner class NoteState(var prePos: Int, var postPos: Int, var isSectionChanged: Boolean, var sectionPrePos: Int, var sectionPostPos: Int)
 
     init {
-        initData(mainListFileName)
-        initData(archiveListFileName)
-        noteList = getListData(mainListFileName)
+        // This inits data for testing purposes
+        //initData(mainListFileName)
+        //initData(archiveListFileName)
+
+        //initLists()
+    }
+
+    fun initLists() {
         noteArchiveList = getListData(archiveListFileName)
+        noteList = getListData(mainListFileName)
         noteList.refreshDoneDate()
         addMainSections()
         viewModelScope.launch  {
-                moveNotesToArchive()
+            moveNotesToArchive()
         }
         setNoteArchive()
     }
@@ -341,11 +347,22 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
 
     // Methods for noteList persistence
     private fun getListData(fileName: String): MutableList<Note> {
-        val text = readFromFile(fileName)
-        //val text = getApplication<Application>().assets.open("Notes.json").bufferedReader().readText()
+        var notesFromDb = allNotes.value?.map {
+            Note(it.title, it.desc, it.isChecked, it.isFuture, it.doneDate, it.isSection)
+        }?.toMutableList()
 
-        val gson = GsonBuilder().create()
-        return gson.fromJson(text, Array<Note>::class.java).toMutableList()
+        // Just workaround for error in db (too many sections)
+        /*if (notesFromDb?.size ?: 0 > 12) {
+            notesFromDb = null
+        }*/
+
+        return notesFromDb ?: run {
+            val text = readFromFile(fileName)
+            //val text = getApplication<Application>().assets.open("Notes.json").bufferedReader().readText()
+
+            val gson = GsonBuilder().create()
+            gson.fromJson(text, Array<Note>::class.java).toMutableList()
+        }
     }
 
     private fun readDataFromExtStorage(fileName: String): String {
@@ -372,9 +389,12 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
             noteDao.deleteAll()
             noteDao.insertAll(noteListToNoteList(noteList))
         }
+        //writeToAsset(noteList, mainListFileName)
+        //writeToAsset(noteArchiveList, archiveListFileName)
+    }
 
-        writeToAsset(noteList, mainListFileName)
-        writeToAsset(noteArchiveList, archiveListFileName)
+    fun writeHistToAssets() {
+        //writeToAsset(noteArchiveList, archiveListFileName)
     }
 
     private fun writeToAsset(list: MutableList<Note>, fileName: String) {

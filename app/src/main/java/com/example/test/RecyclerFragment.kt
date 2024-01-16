@@ -20,7 +20,7 @@ import java.util.*
 
 class RecyclerFragment: Fragment() {
     private lateinit var binding: FragmentRecyclerBinding
-    private var adapter: NoteAdapter? = null
+    //private var adapter: NoteAdapter? = null
     private val noteViewModel: NoteViewModel by activityViewModels {
         NoteViewModelFactory(
             (activity?.application as NoteApplication).database.noteDao(),
@@ -36,12 +36,17 @@ class RecyclerFragment: Fragment() {
         //super.onViewCreated(view, savedInstanceState)
         binding = FragmentRecyclerBinding.inflate(layoutInflater)
 
-        adapter = NoteAdapter(noteViewModel.noteList, { pos -> openDialog(noteViewModel.noteList[pos], pos)}, { noteViewModel.toggleCheckNote(it) })
+        val adapter = NoteAdapter({ pos -> openDialog(noteViewModel.noteList[pos], pos)}, { noteViewModel.toggleCheckNote(it) })
         val recyclerView = binding.recyclerViewIdFr
 
         recyclerView.layoutManager = LinearLayoutManager(activity)
         recyclerView.adapter = adapter
         recyclerView.itemAnimator = DefaultItemAnimator()
+
+        noteViewModel.allNotes.observe(activity as MainActivity) {
+            it.let { adapter.submitList(noteViewModel.noteList) }
+            adapter?.notifyDataSetChanged()
+        }
 
         // Observe
         noteViewModel.notePosChange.observe(activity as MainActivity) {

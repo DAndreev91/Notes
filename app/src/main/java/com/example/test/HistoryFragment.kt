@@ -36,7 +36,18 @@ class HistoryFragment : Fragment() {
     ): View {
         binding = FragmentHistoryBinding.inflate(layoutInflater)
 
-        adapter = NoteAdapter(noteViewModel.noteArchive.value!!, { pos -> openDialog(noteViewModel.noteArchiveList[pos], pos)}, {adapter?.notifyItemChanged(it)})
+        noteViewModel.allNotes.observe(requireActivity()) {
+            noteViewModel.initLists()
+        }
+
+        return binding.root
+    }
+
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        adapter = NoteAdapter({ pos -> openDialog(noteViewModel.noteArchiveList[pos], pos)}, {adapter?.notifyItemChanged(it)})
         val recyclerView = binding.recyclerViewIdHistory
 
         recyclerView.layoutManager = LinearLayoutManager(activity)
@@ -85,16 +96,10 @@ class HistoryFragment : Fragment() {
             noteViewModel.addArchiveSectionsAndSortList()
             adapter?.notifyDataSetChanged()
         }
-
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
     }
 
     override fun onPause() {
-        noteViewModel.writeToAssets()
+        noteViewModel.writeHistToAssets()
         super.onPause()
     }
 
