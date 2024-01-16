@@ -368,6 +368,10 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
             moveNotesToArchive()
         }
         */
+        viewModelScope.launch {
+            noteDao.deleteAll()
+            noteDao.insertAll(noteListToNoteList(noteList))
+        }
 
         writeToAsset(noteList, mainListFileName)
         writeToAsset(noteArchiveList, archiveListFileName)
@@ -379,7 +383,7 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
             val str = gson.toJson(list)
             writeToFile(str, fileName)
         } catch (e:ConcurrentModificationException) {
-            // if someone change MutableList when we tryine to save then just save later
+            // if someone change MutableList when we trying to save then just save later
             Log.e("ConcurrentModificationException", e.stackTraceToString())
         }
     }
@@ -416,6 +420,33 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         return noteList.subList(doneSectionPos, noteList.size).toMutableList()
     }
      */
+
+    private fun noteToNote(note: com.example.test.Note, pos: Int, section: String) : com.example.test.data.Note {
+        noteList.map {  }
+        return com.example.test.data.Note (
+            title = note.title,
+            desc = note.desc,
+            doneDate = note.doneDate,
+            isChecked = note.isChecked,
+            isFuture = note.isFuture,
+            isSection = note.isSection,
+            pos = pos,
+            section = section
+        )
+    }
+
+    private fun noteListToNoteList(list: MutableList<Note>) : MutableList<com.example.test.data.Note> {
+        val plannedSectionPos = list.indexOf(plannedSection)
+        val doneSectionPos = list.indexOf(doneSection)
+        return list.mapIndexed { index, note ->
+            val section = when(index) {
+                in 0 until plannedSectionPos -> "ACTIVE"
+                in plannedSectionPos until doneSectionPos -> "PLANNED"
+                else -> "DONE"
+            }
+            noteToNote(note, index, section)
+        }.toMutableList()
+    }
 }
 
 class NoteViewModelFactory(private val noteDao: NoteDao, private val application: Application): ViewModelProvider.Factory {

@@ -13,11 +13,17 @@ interface NoteDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(item: Note)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(list: List<Note>)
+
     @Update
     suspend fun update(item: Note)
 
     @Delete
     suspend fun delete(item: Note)
+
+    @Query("delete from notes")
+    suspend fun deleteAll()
 
     @Query("select * from notes order by id")
     fun getNotes(): Flow<List<Note>>
