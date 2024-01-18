@@ -5,103 +5,70 @@ import android.graphics.Typeface
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.CheckBox
-import android.widget.TextView
-import androidx.cardview.widget.CardView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.example.test.databinding.NoteItemBinding
 
-class NoteAdapter(val cardClick: (Int) -> Unit, val checkClick: (Int) -> Unit): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class NoteListAdapter(val cardClick: (Int) -> Unit, val checkClick: (Int) -> Unit): ListAdapter<Note, NoteListAdapter.NoteListViewHolder>(DiffCallback) {
 
     private val SECTION_VIEW= 0
     private val CONTENT_VIEW = 1
 
-    private var noteList: MutableList<Note>? = null
+    companion object DiffCallback: DiffUtil.ItemCallback<Note>() {
+        override fun areItemsTheSame(oldItem: Note, newItem: Note): Boolean {
+            return oldItem.desc == newItem.desc
+        }
 
-    fun submitList(list: MutableList<Note>) {
-        noteList = list
+        override fun areContentsTheSame(oldItem: Note, newItem: Note): Boolean {
+            return oldItem == newItem
+        }
     }
 
-    inner class NoteHolder(view: View): RecyclerView.ViewHolder(view) {
-        //val noteTitle = view.findViewById<TextView>(R.id.noteTitle)!!
-        val noteDesc = view.findViewById<TextView>(R.id.noteDesc)!!
-        val noteIsChecked = view.findViewById<CheckBox>(R.id.noteCheck)!!
-        val cardView = view.findViewById<CardView>(R.id.card)!!
-        init {
-            // listen clicks on all view (card view)
-            cardView.setOnClickListener {
-                cardClick(adapterPosition)
+    inner class NoteListViewHolder(private val binding: NoteItemBinding): RecyclerView.ViewHolder(binding.root) {
+        fun bind(cardClick: (Int) -> Unit, checkClick: (Int) -> Unit, pos: Int, note: Note) {
+            binding.apply {
+                // Если не секция
+                if (!note.isSection) {
+                    noteDesc.text = note.desc
+                    noteCheck.isChecked = note.isChecked
+
+                    // Затемнение выполненных задач
+                    if (noteCheck.isChecked) {
+                        card.alpha = 0.5f
+                    } else {
+                        card.alpha = 1f
+                    }
+
+                    // Затемнение будущих задач
+                    if (note.isFuture) {
+                        noteDesc.setTextColor(Color.LTGRAY)
+                        noteDesc.setTypeface(null, Typeface.ITALIC)
+                    } else {
+                        noteDesc.setTextColor(Color.BLACK)
+                        noteDesc.setTypeface(null, Typeface.NORMAL)
+                    }
+
+                    card.setOnClickListener { cardClick(pos) }
+                    noteCheck.setOnClickListener { checkClick(pos) }
+                }
+                // Если секция
+                else {
+                    noteCheck.visibility = View.GONE
+                    noteDesc.text = note.title
+                    noteDesc.setTextColor(Color.parseColor("#676767"))
+                    noteDesc.setTypeface(noteDesc.typeface, Typeface.BOLD)
+                }
             }
-            // listen clicks on checkbox
-            noteIsChecked.setOnClickListener {
-                checkClick(adapterPosition)
-            }
         }
     }
-
-    inner class SectionHolder(view: View): RecyclerView.ViewHolder(view) {
-        val sectionTitle = view.findViewById<TextView>(R.id.sectionTitle)!!
-        val textHolder = view.findViewById<TextView>(R.id.textHolder)!!
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteListAdapter.NoteListViewHolder {
+        val inflater = LayoutInflater.from(parent.context)
+        return NoteListViewHolder(NoteItemBinding.inflate(inflater, parent, false))
     }
 
-    override fun getItemViewType(position: Int): Int {
-        return if (noteList?.get(position)?.isSection == true) {
-            SECTION_VIEW
-        } else {
-            CONTENT_VIEW
-        }
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        return if (viewType == CONTENT_VIEW) {
-            NoteHolder(LayoutInflater.from(parent.context).inflate(R.layout.note_item, parent, false))
-        } else {
-            SectionHolder(LayoutInflater.from(parent.context).inflate(R.layout.section_item, parent, false))
-        }
-    }
-
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        val note = noteList?.get(position)
-        if (getItemViewType(position) == SECTION_VIEW ) {
-            (holder as SectionHolder).sectionTitle.text = note?.title
-            if ((noteList?.size ?: 0) <= position + 1) {
-                holder.textHolder.visibility = View.VISIBLE
-            } else if (noteList?.get(position+1)?.isSection == true) {
-                holder.textHolder.visibility = View.VISIBLE
-            } else {
-                holder.textHolder.visibility = View.GONE
-            }
-            return
-        }
-        val noteHolder = holder as NoteHolder
-        //noteHolder.noteTitle.text = noteList[position].title
-        // Title is gone when not filled
-        /*
-        if (noteHolder.noteTitle.text == "") {
-            noteHolder.noteTitle.visibility = View.GONE
-        } else {
-            noteHolder.noteTitle.visibility = View.VISIBLE
-        }
-         */
-        noteHolder.noteDesc.text = note?.desc// + ";" + noteList[position].doneDate
-        noteHolder.noteIsChecked.isChecked = note?.isChecked == true
-
-        // set text color to gray when note is checked
-        if (noteHolder.noteIsChecked.isChecked) {
-            noteHolder.cardView.alpha = 0.5f
-        } else {
-            noteHolder.cardView.alpha = 1f
-        }
-        if (note?.isFuture == true) {
-            noteHolder.noteDesc.setTextColor(Color.LTGRAY)
-            noteHolder.noteDesc.setTypeface(null, Typeface.ITALIC)
-        } else {
-            noteHolder.noteDesc.setTextColor(Color.BLACK)
-            noteHolder.noteDesc.setTypeface(null, Typeface.NORMAL)
-        }
-    }
-
-    override fun getItemCount(): Int {
-        return noteList?.size ?: 0
+    override fun onBindViewHolder(holder: NoteListAdapter.NoteListViewHolder, position: Int) {
+        holder.bind(cardClick, checkClick, position, getItem(position))
     }
 
 }
