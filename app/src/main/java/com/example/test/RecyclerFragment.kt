@@ -20,7 +20,6 @@ import java.util.*
 
 class RecyclerFragment: Fragment() {
     private lateinit var binding: FragmentRecyclerBinding
-    //private var adapter: NoteAdapter? = null
     private val noteViewModel: NoteViewModel by activityViewModels {
         NoteViewModelFactory(
             (activity?.application as NoteApplication).database.noteDao(),
@@ -35,63 +34,58 @@ class RecyclerFragment: Fragment() {
     ): View {
         //super.onViewCreated(view, savedInstanceState)
         binding = FragmentRecyclerBinding.inflate(layoutInflater)
+        return binding.root
+    }
 
-        val adapter = NoteAdapter({ pos -> openDialog(noteViewModel.noteList[pos], pos)}, { noteViewModel.toggleCheckNote(it) })
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val adapter = NoteListAdapter({ pos -> openDialog(noteViewModel.noteList[pos], pos)}, { noteViewModel.toggleCheckNote(it) })
         val recyclerView = binding.recyclerViewIdFr
 
         recyclerView.layoutManager = LinearLayoutManager(activity)
         recyclerView.adapter = adapter
         recyclerView.itemAnimator = DefaultItemAnimator()
 
-        noteViewModel.allNotes.observe(activity as MainActivity) {
+        noteViewModel.allNotes.observe(viewLifecycleOwner) {
             it.let { adapter.submitList(noteViewModel.noteList) }
-            adapter?.notifyDataSetChanged()
         }
 
         // Observe
+        /*
         noteViewModel.notePosChange.observe(activity as MainActivity) {
             // notify adapter about dml operations
             // Delete item
             if (it.postPos == -1 && it.prePos >= 0) {
-                adapter?.notifyItemRemoved(it.prePos)
+                adapter.notifyItemRemoved(it.prePos)
                 // upd sections
-                adapter?.notifyItemChanged(it.sectionPrePos)
+                adapter.notifyItemChanged(it.sectionPrePos)
             }
             // Add item
             else if (it.prePos == -1 && it.postPos >= 0) {
-                adapter?.notifyItemInserted(it.postPos)
+                adapter.notifyItemInserted(it.postPos)
                 // upd sections
-                adapter?.notifyItemChanged(it.sectionPostPos)
+                adapter.notifyItemChanged(it.sectionPostPos)
             }
             // Change item
             else if (it.prePos >= 0 && it.postPos >= 0 && it.postPos == it.prePos) {
-                adapter?.notifyItemChanged(it.postPos)
+                adapter.notifyItemChanged(it.postPos)
             }
-            // Move item within Active and Planned sections
-            /*else if (it.prePos >= 0 && it.postPos >= 0 && !it.isSectionChanged){
-                adapter?.notifyItemMoved(it.prePos, it.postPos)
-                // upd sections
-                adapter?.notifyItemChanged(it.sectionPrePos)
-                adapter?.notifyItemChanged(it.sectionPostPos)
-            }
-
-             */
             // Move from/to Done section or check item as done
             else if (it.prePos >= 0 && it.postPos >= 0 /*&& it.isSectionChanged*/
             ){
-                //adapter?.notifyItemRemoved(it.prePos)
-                //adapter?.notifyItemInserted(it.postPos)
-                adapter?.notifyItemMoved(it.prePos, it.postPos)
-                adapter?.notifyItemChanged(it.postPos)
+                adapter.notifyItemMoved(it.prePos, it.postPos)
+                adapter.notifyItemChanged(it.postPos)
                 // upd sections
-                adapter?.notifyItemChanged(it.sectionPrePos)
-                adapter?.notifyItemChanged(it.sectionPostPos)
+                adapter.notifyItemChanged(it.sectionPrePos)
+                adapter.notifyItemChanged(it.sectionPostPos)
             }
             // scroll to top when we adding item to not done section
             if (it.postPos == 0) {
                 binding.recyclerViewIdFr.scrollToPosition(0)
             }
         }
+        */
 
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.LEFT){
             override fun onMove(
@@ -166,8 +160,6 @@ class RecyclerFragment: Fragment() {
                 }
             }
         }
-
-        return binding.root
     }
 
     override fun onPause() {

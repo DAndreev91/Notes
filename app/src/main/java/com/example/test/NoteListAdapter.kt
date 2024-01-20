@@ -12,9 +12,6 @@ import com.example.test.databinding.NoteItemBinding
 
 class NoteListAdapter(val cardClick: (Int) -> Unit, val checkClick: (Int) -> Unit): ListAdapter<Note, NoteListAdapter.NoteListViewHolder>(DiffCallback) {
 
-    private val SECTION_VIEW= 0
-    private val CONTENT_VIEW = 1
-
     companion object DiffCallback: DiffUtil.ItemCallback<Note>() {
         override fun areItemsTheSame(oldItem: Note, newItem: Note): Boolean {
             return oldItem.desc == newItem.desc
