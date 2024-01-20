@@ -43,7 +43,7 @@ class RecyclerFragment: Fragment() {
         val adapter = NoteListAdapter({ pos -> openDialog(noteViewModel.noteList[pos], pos)}, { noteViewModel.toggleCheckNote(it) })
         val recyclerView = binding.recyclerViewIdFr
 
-        recyclerView.layoutManager = LinearLayoutManager(activity)
+        recyclerView.layoutManager = LinearLayoutManager(this.context)
         recyclerView.adapter = adapter
         recyclerView.itemAnimator = DefaultItemAnimator()
 
@@ -52,7 +52,6 @@ class RecyclerFragment: Fragment() {
         }
 
         // Observe
-        /*
         noteViewModel.notePosChange.observe(activity as MainActivity) {
             // notify adapter about dml operations
             // Delete item
@@ -85,7 +84,6 @@ class RecyclerFragment: Fragment() {
                 binding.recyclerViewIdFr.scrollToPosition(0)
             }
         }
-        */
 
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.LEFT){
             override fun onMove(

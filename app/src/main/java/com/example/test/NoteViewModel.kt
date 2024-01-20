@@ -26,9 +26,7 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
 
     val allNotes:LiveData<List<com.example.test.data.Note>> = noteDao.getNotes().asLiveData()
 
-    lateinit var noteList: MutableList<Note>
     lateinit var noteArchiveList: MutableList<Note>
-    private lateinit var noteTempList: MutableList<Note>
     private val mainListFileName = "QueueFile.txt"
     private val archiveListFileName = "QueueArchiveFile.txt"
 
@@ -36,50 +34,25 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
     var noteArchive: MutableLiveData<MutableList<Note>> = MutableLiveData()
 
     private var deleteNotePos: Int = -1
-    private lateinit var deleteNote: Note
+    private lateinit var deleteNote: com.example.test.data.Note
     private val noteState = NoteState(-1,-1, false, 0, 0)
     private var preSection: Note? = null
     private var postSection: Note? = null
     private var doneSectionPos: Int = 0
     private val nullDateStr = "01.01.1900"
-    private val activeSection = Note("Active", "", false,
-        isFuture = false,
-        doneDate = nullDateStr,
-        isSection = true
-    )
-    private val plannedSection = Note("Planned", "", false,
-        isFuture = true,
-        doneDate = nullDateStr,
-        isSection = true
-    )
-    private val doneSection = Note("Done", "", true,
-        isFuture = false,
-        doneDate = nullDateStr,
-        isSection = true
-    )
     private val hoursBeforeArchiving = 0.01
 
     inner class NoteState(var prePos: Int, var postPos: Int, var isSectionChanged: Boolean, var sectionPrePos: Int, var sectionPostPos: Int)
 
     init {
-        // This inits data for testing purposes
-        //initData(mainListFileName)
-        //initData(archiveListFileName)
-
-        //initLists()
+        initLists()
     }
-
     fun initLists() {
-        noteArchiveList = getListData(archiveListFileName)
-        noteList = getListData(mainListFileName)
-        noteList.refreshDoneDate()
-        addMainSections()
-        viewModelScope.launch  {
-            moveNotesToArchive()
-        }
+        noteArchiveList = mutableListOf()
         setNoteArchive()
     }
 
+    /*
     private fun MutableList<Note>.refreshDoneDate() {
         this.forEach {
             if (!it.isSection) {
@@ -93,14 +66,17 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
             }
         }
     }
+    */
 
+    /*
     private suspend fun moveNotesToArchive() {
         withContext(Dispatchers.IO) {
             noteTempList = getMovingNoteList(noteList) { getOldNotes(it) }
             addOldNotesToArchive(noteArchiveList, noteTempList)
         }
     }
-
+    */
+    /*
     private fun addOldNotesToArchive(archiveList: MutableList<Note>, tmpNoteList: MutableList<Note>) {
         var tmpDate = nullDateStr
         var tmpSectionPos = 0
@@ -125,6 +101,8 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         }
     }
 
+     */
+    /*
     private fun getMovingNoteList(list: MutableList<Note>, getSubList: (MutableList<Note>) -> MutableList<Note>): MutableList<Note> {
         val tmpList = getSubList(list)
         //Log.e("getMovingNoteList", tmpList.size.toString())
@@ -135,6 +113,8 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         return tmpList
     }
 
+     */
+    /*
     private fun getOldNotes(list: MutableList<Note>): MutableList<Note> {
         //Log.e("getOldNotesBorders", "list size = ${list.size}")
         // get Done section position
@@ -164,6 +144,8 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         }
     }
 
+     */
+    /*
     // Adding sections no main list when they lost after collapses =)
     private fun addMainSections() {
         if (noteList.getOrNull(0)?.title != "Active" && (noteList.getOrNull(0)?.isSection != true)) {
@@ -214,6 +196,8 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         }
     }
 
+     */
+
     fun addArchiveSectionsAndSortList() {
         noteArchiveList.sortWith(compareByDescending<Note> { SimpleDateFormat("dd.MM.yyyy", Locale.GERMAN).parse(it.doneDate)}.thenByDescending {it.isSection})
         var sectionDate: String = nullDateStr
@@ -232,14 +216,20 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         }
     }
 
-    private fun refreshSection(to: Int): Note? {
-        //Log.e("sectionPostPos", "${noteState.sectionPostPos}")
-        //Log.e("to", "$to")
+    private fun getSectionFromPosition(to: Int): com.example.test.data.Note? {
         return  try {
-            noteList.filterIndexed { index, note -> note.isSection && index < to }.last()
+            allNotes.value!!.filterIndexed { index, note -> note.isSection && index <= to }.last()
         } catch (e: NoSuchElementException) {
             null
         }
+    }
+
+    private fun getNewNoteState(from: Int, to: Int): String {
+        // Определяем на какой позиции будут записи секций и откуда соответственно искать первую секцию
+        return  (when (to < from) {
+            true -> getSectionFromPosition(to-1)?.section
+            else -> getSectionFromPosition(to)?.section
+        }) ?: "Active"
     }
 
     private fun setNoteArchive() {
@@ -254,6 +244,7 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         Log.e("doneDate", note.doneDate)
     }
 
+    /*
     private fun refreshSections() {
         if (preSection != null) {
             noteState.sectionPrePos = noteList.indexOf(preSection)
@@ -281,6 +272,9 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
 
     }
 
+     */
+
+    /*
     private fun refreshNoteState(from: Int, to: Int, isSectionChanged: Boolean, func:() -> Unit) {
         preSection = refreshSection(from)
         func()
@@ -293,23 +287,33 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         notePosChange.value = noteState
     }
 
+     */
+
+
+
     fun moveNote(from: Int, to: Int) {
-        refreshNoteState(from, to, false) {
-            Collections.swap(noteList, from, to)
+        val newSection = getNewNoteState(from, to)
+        viewModelScope.launch {
+            noteDao.updateNotesPositions(from, to, newSection)
         }
     }
 
-    fun deleteNote(pos: Int, list: MutableList<Note>) {
-        refreshNoteState(pos, -1, false) {
+    fun deleteNote(pos: Int) {
+        allNotes.value?.get(pos)?.let {
             deleteNotePos = pos
-            deleteNote = list.removeAt(deleteNotePos)
+            deleteNote = it
+            viewModelScope.launch {
+                noteDao.delete(it)
+                noteDao.compressPositionsAfterDelete(pos)
+            }
         }
     }
 
     fun undoNote(list: MutableList<Note>) {
         if (deleteNotePos != -1) {
-            refreshNoteState(-1, deleteNotePos, false) {
-                list.add(deleteNotePos, deleteNote)
+            viewModelScope.launch {
+                noteDao.stretchPositionsAfterUndoDelete(deleteNotePos)
+                noteDao.insert(deleteNote)
             }
             deleteNotePos = -1
         }
@@ -358,7 +362,6 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
 
         return notesFromDb ?: run {
             val text = readFromFile(fileName)
-            //val text = getApplication<Application>().assets.open("Notes.json").bufferedReader().readText()
 
             val gson = GsonBuilder().create()
             gson.fromJson(text, Array<Note>::class.java).toMutableList()
@@ -380,13 +383,7 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
 
     fun writeToAssets() {
         // don't change notes list here
-        /*
         viewModelScope.launch {
-            moveNotesToArchive()
-        }
-        */
-        viewModelScope.launch {
-            noteDao.deleteAll()
             noteDao.insertAll(noteListToNoteList(noteList))
         }
         //writeToAsset(noteList, mainListFileName)
@@ -442,7 +439,7 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
      */
 
     private fun noteToNote(note: com.example.test.Note, pos: Int, section: String) : com.example.test.data.Note {
-        noteList.map {  }
+        //noteList.map {  }
         return com.example.test.data.Note (
             title = note.title,
             desc = note.desc,

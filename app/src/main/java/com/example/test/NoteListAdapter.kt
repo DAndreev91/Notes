@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.test.databinding.NoteItemBinding
 
-class NoteListAdapter(val cardClick: (Int) -> Unit, val checkClick: (Int) -> Unit): ListAdapter<Note, NoteListAdapter.NoteListViewHolder>(DiffCallback) {
+class NoteListAdapter(private val cardClick: (Int) -> Unit, private val checkClick: (Int) -> Unit): ListAdapter<Note, NoteListAdapter.NoteListViewHolder>(DiffCallback) {
 
     companion object DiffCallback: DiffUtil.ItemCallback<Note>() {
         override fun areItemsTheSame(oldItem: Note, newItem: Note): Boolean {

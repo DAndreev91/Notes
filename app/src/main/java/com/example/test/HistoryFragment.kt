@@ -20,7 +20,6 @@ import com.google.android.material.snackbar.Snackbar
 class HistoryFragment : Fragment() {
 
     private lateinit var binding: FragmentHistoryBinding
-    private var adapter: NoteAdapter? = null
     private val noteViewModel: NoteViewModel by activityViewModels {
         NoteViewModelFactory(
             (activity?.application as NoteApplication).database.noteDao(),
@@ -47,7 +46,7 @@ class HistoryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        adapter = NoteAdapter({ pos -> openDialog(noteViewModel.noteArchiveList[pos], pos)}, {adapter?.notifyItemChanged(it)})
+        val adapter = NoteListAdapter({ pos -> openDialog(noteViewModel.noteArchiveList[pos], pos)}, {null})
         val recyclerView = binding.recyclerViewIdHistory
 
         recyclerView.layoutManager = LinearLayoutManager(activity)
@@ -58,7 +57,7 @@ class HistoryFragment : Fragment() {
         noteViewModel.noteArchive.observe(requireActivity()) {
             // notify adapter about dml operations
             // Delete item
-            adapter?.notifyDataSetChanged()
+            it.let { adapter.submitList(it) }
         }
 
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.RIGHT, ItemTouchHelper.RIGHT){
@@ -94,7 +93,7 @@ class HistoryFragment : Fragment() {
 
         binding.fabH.setOnClickListener {
             noteViewModel.addArchiveSectionsAndSortList()
-            adapter?.notifyDataSetChanged()
+            adapter.notifyDataSetChanged()
         }
     }
 
