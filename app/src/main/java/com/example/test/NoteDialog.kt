@@ -12,7 +12,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.test.databinding.NoteIuBinding
 
 class NoteDialog: DialogFragment() {
-    lateinit var note: Note
+    lateinit var note: com.example.test.data.Note
     private var notePosition: Int = -1
     private var isEditable = true
     private lateinit var binding: NoteIuBinding
@@ -23,7 +23,7 @@ class NoteDialog: DialogFragment() {
         )
     }
 
-    fun setDialogNote(noteSend: Note, notePos: Int) {
+    fun setDialogNote(noteSend: com.example.test.data.Note, notePos: Int) {
         note = noteSend
         notePosition = notePos
     }
@@ -49,9 +49,19 @@ class NoteDialog: DialogFragment() {
 
     override fun onCancel(dialog: DialogInterface) {
         if (isEditable) {
-            note.desc = binding.noteDesc.text.toString()
+            val newNote = com.example.test.data.Note (
+                note.id,
+                note.title,
+                binding.noteDesc.text.toString(),
+                note.isChecked,
+                note.isFuture,
+                note.doneDate,
+                note.isSection,
+                note.pos,
+                note.section
+            )
 
-            noteViewModel.addNote(notePosition, note)
+            noteViewModel.addNote(newNote)
         }
         super.onDismiss(dialog)
     }

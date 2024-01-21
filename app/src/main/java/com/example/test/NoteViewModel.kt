@@ -319,37 +319,34 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         }
     }
 
-    fun addNote(pos: Int, note: Note) {
+    fun addNote(note: com.example.test.data.Note) {
         // adding new item
-        if (pos == -1) {
-            // first section "active" with index = 0 thus for adding new items - index = 1
-            refreshNoteState(-1, 1, false) {
-                noteList.add(1, note)
-            }
-        } else {
-            refreshNoteState(pos, pos, false) {
-                noteList[pos] = note
-            }
+        viewModelScope.launch {
+            noteDao.insert(note)
         }
     }
 
     fun toggleCheckNote(pos: Int) {
-        if (!noteList[pos].isChecked) {
-            refreshNoteState(pos, noteList.size - 1, true) {
-                val note = noteList.removeAt(pos)
-                setIsChecked(note, !note.isChecked)
-                noteList.add(note)
-            }
-        } else {
-            refreshNoteState(pos, 1, true) {
-                val note = noteList.removeAt(pos)
-                setIsChecked(note, !note.isChecked)
-                noteList.add(1, note)
-            }
+        val note = allNotes.value?.get(pos)!!
+        val c = Calendar.getInstance()
+        val newNote = com.example.test.data.Note (
+            note.id,
+            note.title,
+            note.desc,
+            !note.isChecked,
+            note.isFuture,
+            SimpleDateFormat("dd.MM.yyyy", Locale.GERMAN).format(c.time),
+            note.isSection,
+            note.pos,
+            note.section
+        )
+        viewModelScope.launch {
+            noteDao.update(newNote)
         }
     }
 
     // Methods for noteList persistence
+    /*
     private fun getListData(fileName: String): MutableList<Note> {
         var notesFromDb = allNotes.value?.map {
             Note(it.title, it.desc, it.isChecked, it.isFuture, it.doneDate, it.isSection)
@@ -368,10 +365,14 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         }
     }
 
+     */
+    /*
     private fun readDataFromExtStorage(fileName: String): String {
         return  File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), fileName).readText()
     }
 
+     */
+    /*
     private fun initData(fileName: String) {
         val text = readDataFromExtStorage(fileName)
         val file = File(getApplication<Application>().filesDir, fileName)
@@ -380,11 +381,12 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         }
         file.writeText(text)
     }
+     */
 
     fun writeToAssets() {
         // don't change notes list here
         viewModelScope.launch {
-            noteDao.insertAll(noteListToNoteList(noteList))
+            allNotes.value?.let { noteDao.insertAll(it) }
         }
         //writeToAsset(noteList, mainListFileName)
         //writeToAsset(noteArchiveList, archiveListFileName)
@@ -393,7 +395,7 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
     fun writeHistToAssets() {
         //writeToAsset(noteArchiveList, archiveListFileName)
     }
-
+    /*
     private fun writeToAsset(list: MutableList<Note>, fileName: String) {
         try {
             val gson = GsonBuilder().create()
@@ -405,6 +407,8 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         }
     }
 
+     */
+    /*
     private fun writeToFile(s: String, fileName: String) {
         val file = File(getApplication<Application>().filesDir, fileName)
         if (!file.exists()) {
@@ -420,6 +424,8 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), fileName).writeText(s)
     }
 
+     */
+    /*
     private fun readFromFile(fileName: String): String {
         val file = File(getApplication<Application>().filesDir, fileName)
         val v: String = if (file.exists()) {
@@ -430,6 +436,8 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         return v
     }
 
+     */
+
     /*
     private fun readArchive(): MutableList<Note> {
         doneSectionPos = noteList.indexOf(noteList.first { note -> note.title == "Done" })
@@ -437,7 +445,7 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         return noteList.subList(doneSectionPos, noteList.size).toMutableList()
     }
      */
-
+    /*
     private fun noteToNote(note: com.example.test.Note, pos: Int, section: String) : com.example.test.data.Note {
         //noteList.map {  }
         return com.example.test.data.Note (
@@ -452,6 +460,8 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         )
     }
 
+     */
+    /*
     private fun noteListToNoteList(list: MutableList<Note>) : MutableList<com.example.test.data.Note> {
         val plannedSectionPos = list.indexOf(plannedSection)
         val doneSectionPos = list.indexOf(doneSection)
@@ -464,6 +474,8 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
             noteToNote(note, index, section)
         }.toMutableList()
     }
+
+     */
 }
 
 class NoteViewModelFactory(private val noteDao: NoteDao, private val application: Application): ViewModelProvider.Factory {
