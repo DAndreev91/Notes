@@ -10,20 +10,20 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.test.databinding.NoteItemBinding
 
-class NoteListAdapter(private val cardClick: (Int) -> Unit, private val checkClick: (Int) -> Unit): ListAdapter<Note, NoteListAdapter.NoteListViewHolder>(DiffCallback) {
+class NoteListAdapter(private val cardClick: (Int) -> Unit, private val checkClick: (Int) -> Unit): ListAdapter<com.example.test.data.Note, NoteListAdapter.NoteListViewHolder>(DiffCallback) {
 
-    companion object DiffCallback: DiffUtil.ItemCallback<Note>() {
-        override fun areItemsTheSame(oldItem: Note, newItem: Note): Boolean {
+    companion object DiffCallback: DiffUtil.ItemCallback<com.example.test.data.Note>() {
+        override fun areItemsTheSame(oldItem: com.example.test.data.Note, newItem: com.example.test.data.Note): Boolean {
             return oldItem.desc == newItem.desc
         }
 
-        override fun areContentsTheSame(oldItem: Note, newItem: Note): Boolean {
+        override fun areContentsTheSame(oldItem: com.example.test.data.Note, newItem: com.example.test.data.Note): Boolean {
             return oldItem == newItem
         }
     }
 
     inner class NoteListViewHolder(private val binding: NoteItemBinding): RecyclerView.ViewHolder(binding.root) {
-        fun bind(cardClick: (Int) -> Unit, checkClick: (Int) -> Unit, pos: Int, note: Note) {
+        fun bind(cardClick: (Int) -> Unit, checkClick: (Int) -> Unit, pos: Int, note: com.example.test.data.Note) {
             binding.apply {
                 // Если не секция
                 if (!note.isSection) {
@@ -46,7 +46,7 @@ class NoteListAdapter(private val cardClick: (Int) -> Unit, private val checkCli
                         noteDesc.setTypeface(null, Typeface.NORMAL)
                     }
 
-                    card.setOnClickListener { cardClick(pos) }
+                    card.setOnClickListener { cardClick(note.id) }
                     noteCheck.setOnClickListener { checkClick(pos) }
                 }
                 // Если секция

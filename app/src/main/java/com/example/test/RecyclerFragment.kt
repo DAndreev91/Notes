@@ -40,7 +40,7 @@ class RecyclerFragment: Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val adapter = NoteListAdapter({ pos -> openDialog(noteViewModel.noteList[pos], pos)}, { noteViewModel.toggleCheckNote(it) })
+        val adapter = NoteListAdapter({ id -> openDialog(id)}, { noteViewModel.toggleCheckNote(it) })
         val recyclerView = binding.recyclerViewIdFr
 
         recyclerView.layoutManager = LinearLayoutManager(this.context)
@@ -48,7 +48,7 @@ class RecyclerFragment: Fragment() {
         recyclerView.itemAnimator = DefaultItemAnimator()
 
         noteViewModel.allNotes.observe(viewLifecycleOwner) {
-            it.let { adapter.submitList(noteViewModel.noteList) }
+            it.let { adapter.submitList(it) }
         }
 
         // Observe
@@ -103,7 +103,7 @@ class RecyclerFragment: Fragment() {
                 viewHolder: RecyclerView.ViewHolder
             ): Int {
                 try {
-                    if (noteViewModel.noteList[viewHolder.adapterPosition].isSection) {
+                    if (noteViewModel.isNoteSection(viewHolder.adapterPosition)) {
                         return 0
                     }
                     return super.getDragDirs(recyclerView, viewHolder)
@@ -119,7 +119,7 @@ class RecyclerFragment: Fragment() {
                 viewHolder: RecyclerView.ViewHolder
             ): Int {
                 try {
-                    if (noteViewModel.noteList[viewHolder.adapterPosition].isSection) {
+                    if (noteViewModel.isNoteSection(viewHolder.adapterPosition)) {
                         return 0
                     }
                     return super.getSwipeDirs(recyclerView, viewHolder)
@@ -130,12 +130,12 @@ class RecyclerFragment: Fragment() {
             }
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                if(!noteViewModel.noteList[viewHolder.adapterPosition].isSection) {
-                    noteViewModel.deleteNote(viewHolder.adapterPosition, noteViewModel.noteList)
+                if(!noteViewModel.isNoteSection(viewHolder.adapterPosition)) {
+                    noteViewModel.deleteNote(viewHolder.adapterPosition)
 
                     Snackbar.make(recyclerView, "Deleted note", Snackbar.LENGTH_LONG)
                         .setAction("Undo") {
-                            noteViewModel.undoNote(noteViewModel.noteList)
+                            noteViewModel.undoNote()
                         }.show()
                 }
             }
@@ -143,13 +143,7 @@ class RecyclerFragment: Fragment() {
 
         binding.fabFr.setOnClickListener {
             try {
-                val newNote = Note(
-                    "", "", false,
-                    isFuture = false,
-                    doneDate = SimpleDateFormat("dd.MM.yyyy", Locale.GERMAN).format(Date()),
-                    isSection = false
-                )
-                openDialog(newNote, -1)
+                openDialog(null)
             } catch(e:Exception) {
                 binding.logView.text = e.stackTraceToString()
                 binding.logView.visibility = View.VISIBLE
@@ -165,10 +159,10 @@ class RecyclerFragment: Fragment() {
         super.onPause()
     }
 
-    private fun openDialog (note: Note, pos: Int) {
+    private fun openDialog (id: Int?) {
         try {
             val dialog = NoteDialog()
-            dialog.setDialogNote(note, pos)
+            dialog.setDialogNote(id)
             dialog.show(parentFragmentManager, "1")
         } catch(e:Exception) {
             binding.logView.text = e.stackTraceToString()

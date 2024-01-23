@@ -236,14 +236,14 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         noteArchive.value = noteArchiveList
     }
 
+    /*
     private fun setIsChecked(note: Note, isChecked: Boolean) {
         note.isChecked = isChecked
         val c = Calendar.getInstance()
-        //c.add(Calendar.DATE, -1)
         note.doneDate = SimpleDateFormat("dd.MM.yyyy", Locale.GERMAN).format(c.time)
         Log.e("doneDate", note.doneDate)
     }
-
+     */
     /*
     private fun refreshSections() {
         if (preSection != null) {
@@ -309,7 +309,7 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         }
     }
 
-    fun undoNote(list: MutableList<Note>) {
+    fun undoNote() {
         if (deleteNotePos != -1) {
             viewModelScope.launch {
                 noteDao.stretchPositionsAfterUndoDelete(deleteNotePos)
@@ -343,6 +343,14 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         viewModelScope.launch {
             noteDao.update(newNote)
         }
+    }
+
+    fun getNote(id: Int): LiveData<com.example.test.data.Note> {
+        return noteDao.getNote(id).asLiveData()
+    }
+
+    fun isNoteSection(position: Int): Boolean {
+        return allNotes.value?.get(position)?.isSection ?: false
     }
 
     // Methods for noteList persistence

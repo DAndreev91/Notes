@@ -10,10 +10,12 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
 import com.example.test.databinding.NoteIuBinding
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class NoteDialog: DialogFragment() {
     lateinit var note: com.example.test.data.Note
-    private var notePosition: Int = -1
     private var isEditable = true
     private lateinit var binding: NoteIuBinding
     private val noteViewModel: NoteViewModel by activityViewModels {
@@ -23,9 +25,27 @@ class NoteDialog: DialogFragment() {
         )
     }
 
-    fun setDialogNote(noteSend: com.example.test.data.Note, notePos: Int) {
-        note = noteSend
-        notePosition = notePos
+    fun setDialogNote(id: Int?) {
+        if (id != null) {
+            noteViewModel.getNote(id).observe(viewLifecycleOwner) {
+                note = it
+            }
+        } else {
+            note = com.example.test.data.Note(
+                title = "",
+                desc = "",
+                isChecked = false,
+                isFuture = false,
+                isSection = false,
+                doneDate = SimpleDateFormat("dd.MM.yyyy", Locale.GERMAN).format(Date()),
+                pos = 0,
+                section = "Active"
+            )
+        }
+    }
+
+    fun setDialogNote(newNote: com.example.test.data.Note) {
+        note = newNote
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
