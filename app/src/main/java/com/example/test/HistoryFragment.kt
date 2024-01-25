@@ -46,7 +46,11 @@ class HistoryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val adapter = NoteListAdapter({ pos -> openDialog(noteViewModel.noteArchiveList[pos], pos)}, {null})
+        val adapter = NoteListAdapter({ pos -> noteViewModel.allNotes.value?.get(pos)?.id?.let {
+            openDialog(
+                it
+            )
+        } }, {null})
         val recyclerView = binding.recyclerViewIdHistory
 
         recyclerView.layoutManager = LinearLayoutManager(activity)
@@ -54,10 +58,8 @@ class HistoryFragment : Fragment() {
         recyclerView.itemAnimator = DefaultItemAnimator()
 
         // Observe
-        noteViewModel.noteArchive.observe(requireActivity()) {
-            // notify adapter about dml operations
-            // Delete item
-            it.let { adapter.submitList(it) }
+        noteViewModel.allNotes.observe(requireActivity()) {
+            // it.let { adapter.submitList(it) }
         }
 
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.RIGHT, ItemTouchHelper.RIGHT){
@@ -81,11 +83,11 @@ class HistoryFragment : Fragment() {
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 if(!noteViewModel.noteArchiveList[viewHolder.adapterPosition].isSection) {
-                    noteViewModel.deleteNote(viewHolder.adapterPosition, noteViewModel.noteArchiveList)
+                    noteViewModel.deleteNote(viewHolder.adapterPosition)
 
                     Snackbar.make(recyclerView, "Deleted archive note", Snackbar.LENGTH_LONG)
                         .setAction("Undo") {
-                            noteViewModel.undoNote(noteViewModel.noteArchiveList)
+                            noteViewModel.undoNote()
                         }.show()
                 }
             }
@@ -102,9 +104,9 @@ class HistoryFragment : Fragment() {
         super.onPause()
     }
 
-    private fun openDialog (note: com.example.test.Note, pos: Int) {
+    private fun openDialog (pos: Int) {
         val dialog = NoteDialog()
-        dialog.setDialogNote(note, pos)
+        dialog.setDialogNote(pos)
         dialog.setTextNonEditable()
         dialog.show(parentFragmentManager, "1")
     }

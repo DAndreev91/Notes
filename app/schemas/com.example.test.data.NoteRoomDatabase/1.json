@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "0a83d7c89b2827be9df3d0d68972fce6",
+    "identityHash": "4a6f4d41ecc5619de725cdb165f01fb5",
     "entities": [
       {
         "tableName": "notes",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `is_checked` INTEGER NOT NULL, `is_future` INTEGER NOT NULL, `done_date` TEXT NOT NULL, `is_section` INTEGER NOT NULL, `position` INTEGER NOT NULL, `section` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `is_checked` INTEGER NOT NULL, `is_future` INTEGER NOT NULL, `done_date` TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, `is_section` INTEGER NOT NULL, `position` INTEGER NOT NULL, `section` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -42,7 +42,8 @@
             "fieldPath": "doneDate",
             "columnName": "done_date",
             "affinity": "TEXT",
-            "notNull": true
+            "notNull": true,
+            "defaultValue": "CURRENT_TIMESTAMP"
           },
           {
             "fieldPath": "isSection",
@@ -76,7 +77,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0a83d7c89b2827be9df3d0d68972fce6')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '4a6f4d41ecc5619de725cdb165f01fb5')"
     ]
   }
 }
