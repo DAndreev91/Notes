@@ -34,7 +34,7 @@ interface NoteDao {
     // Обновляем позиции заметок при перемещении внутри списка с обновлением флагов и секции
     @Query("update notes " +
             "set position = case position " +
-            "when :from then :to else position + sign(:from-:to) end," +
+            "when :from then :to else position + (:from-:to)/abs(:from-:to) end," +
             "section = case position when :from then :newSection else section end," +
             "is_future = case when position = :from and :newSection = 'Planned' then 1 else 0 end," +
             "is_checked = case when position = :from and :newSection = 'Done' then 1 else 0 end " +

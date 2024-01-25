@@ -86,6 +86,9 @@ class RecyclerFragment: Fragment() {
         }
 
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.LEFT){
+            var from = -1
+            var to = -1
+            var drag = false
             override fun onMove(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder,
@@ -94,8 +97,24 @@ class RecyclerFragment: Fragment() {
                 if (target.adapterPosition == 0) {
                     return false
                 }
-                noteViewModel.moveNote(viewHolder.adapterPosition, target.adapterPosition)
+                if (from == -1) {
+                    from = viewHolder.adapterPosition
+                }
+                to = target.adapterPosition
+                //adapter.notifyItemMoved(viewHolder.adapterPosition, target.adapterPosition)
                 return true
+            }
+
+            override fun onSelectedChanged(viewHolder: RecyclerView.ViewHolder?, actionState: Int) {
+                super.onSelectedChanged(viewHolder, actionState)
+                if(actionState == ItemTouchHelper.ACTION_STATE_DRAG) {
+                    drag = true;
+                }
+                if(actionState == ItemTouchHelper.ACTION_STATE_IDLE && drag) {
+                    noteViewModel.moveNote(from, to)
+                    from = -1
+                    to = -1
+                }
             }
 
             override fun getDragDirs(

@@ -14,7 +14,7 @@ class NoteListAdapter(private val cardClick: (Int) -> Unit, private val checkCli
 
     companion object DiffCallback: DiffUtil.ItemCallback<com.example.test.data.Note>() {
         override fun areItemsTheSame(oldItem: com.example.test.data.Note, newItem: com.example.test.data.Note): Boolean {
-            return oldItem.desc == newItem.desc
+            return oldItem.id == newItem.id
         }
 
         override fun areContentsTheSame(oldItem: com.example.test.data.Note, newItem: com.example.test.data.Note): Boolean {

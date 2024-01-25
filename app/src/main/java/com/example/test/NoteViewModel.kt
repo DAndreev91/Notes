@@ -292,9 +292,12 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
 
 
     fun moveNote(from: Int, to: Int) {
-        val newSection = getNewNoteState(from, to)
-        viewModelScope.launch {
-            noteDao.updateNotesPositions(from, to, newSection)
+        if (from != to) {
+            Log.d("MOVE NOTE", "from = $from; to = $to")
+            val newSection = getNewNoteState(from, to)
+            viewModelScope.launch {
+                noteDao.updateNotesPositions(from, to, newSection)
+            }
         }
     }
 
