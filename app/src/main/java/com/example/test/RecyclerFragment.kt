@@ -55,6 +55,7 @@ class RecyclerFragment: Fragment() {
             it.let { adapter.submitList(it) }
         }
 
+        /*
         // Observe
         noteViewModel.notePosChange.observe(activity as MainActivity) {
             // notify adapter about dml operations
@@ -89,6 +90,8 @@ class RecyclerFragment: Fragment() {
             }
         }
 
+         */
+
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.LEFT){
             var from = -1
             var to = -1
@@ -106,6 +109,7 @@ class RecyclerFragment: Fragment() {
                 }
                 to = target.adapterPosition
                 noteViewModel.moveNote(viewHolder.adapterPosition, target.adapterPosition)
+                adapter.notifyItemChanged(target.adapterPosition)
                 return true
             }
 
@@ -117,7 +121,7 @@ class RecyclerFragment: Fragment() {
                 if(actionState == ItemTouchHelper.ACTION_STATE_IDLE && drag) {
                     if (from != to) {
                         Log.d("FINISH MOVE NOTE", "FINISH MOVE NOTE! from = $from; to = $to")
-                        noteViewModel.moveNoteToDb()
+                        noteViewModel.moveNotesToDb()
                         drag = false
                         from = -1
                         to = -1

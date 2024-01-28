@@ -48,7 +48,7 @@ class NoteListAdapter(private val cardClick: (Int) -> Unit, private val checkCli
                     }
 
                     card.setOnClickListener { cardClick(note.id) }
-                    noteCheck.setOnClickListener { checkClick(pos) }
+                    noteCheck.setOnClickListener { checkClick(note.id) }
                 }
                 // Если секция
                 else {

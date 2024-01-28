@@ -23,6 +23,10 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.abs
 
+const val ACTIVE = "Active"
+const val PLANNED = "Planned"
+const val DONE = "Done"
+
 
 class NoteViewModel(private val noteDao: NoteDao, application: Application) : AndroidViewModel(application) {
 
@@ -243,7 +247,23 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
 
     private fun setNoteSectionOnNewPos(noteList: MutableList<com.example.test.data.Note>, to: Int) {
         // Определяем на какой позиции будут записи секций и откуда соответственно искать первую секцию
-        noteList[to].section = (getSectionFromPosition(noteList, to)) ?: "Active"
+        val note = noteList[to]
+        note.section = (getSectionFromPosition(noteList, to)) ?: ACTIVE
+        when (note.section) {
+            ACTIVE -> {
+                note.isChecked = false
+                note.isFuture = false
+            }
+            PLANNED -> {
+                note.isChecked = false
+                note.isFuture = true
+            }
+            DONE -> {
+                note.isChecked = true
+                note.isFuture = false
+            }
+        }
+        Log.i("MOVE NOTE", "isChecked = ${noteList[to].isChecked}; isFuture = ${noteList[to].isFuture}")
     }
 
     private fun setNoteArchive() {
@@ -312,15 +332,16 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
             noteListTmp = allNotesForView.value!!.toMutableList()
             // Swapping note to new place. Old logic had refreshNoteState exec here
             Collections.swap(noteListTmp, from, to)
-            allNotesForView.value = noteListTmp
             setNoteSectionOnNewPos(noteListTmp, to)
+            Log.i("MOVE NOTE STATE", "noteListTmp isChecked = ${noteListTmp[to].isChecked}; isFuture = ${noteListTmp[to].isFuture}")
+            allNotesForView.value = noteListTmp
             preFrom = from
             preTo = to
             Log.d("MOVE NOTE", "from = $from; to = $to")
         }
     }
 
-    fun moveNoteToDb() {
+    fun moveNotesToDb() {
         viewModelScope.launch {
             noteListTmp = updateNotesPositions(noteListTmp)
             noteDao.insertAll(noteListTmp)
@@ -355,23 +376,28 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         }
     }
 
-    fun toggleCheckNote(pos: Int) {
-        val note = allNotes.value?.get(pos)!!
-        val c = Calendar.getInstance()
-        val newNote = com.example.test.data.Note (
-            note.id,
-            note.title,
-            note.desc,
-            !note.isChecked,
-            note.isFuture,
-            SimpleDateFormat("dd.MM.yyyy", Locale.GERMAN).format(c.time),
-            note.isSection,
-            note.pos,
-            note.section
-        )
-        viewModelScope.launch {
-            noteDao.update(newNote)
+    fun toggleCheckNote(id: Int) {
+        noteListTmp = allNotesForView.value!!.toMutableList()
+        // Ищем заметку в списке по id
+        val note = noteListTmp.last { it.id == id }
+
+        // В зависимости от флага isChecked переставляем заметку либо в начало, либо в конец
+        Log.i("TOGGLE CHECK NOTE", "isChecked = ${note.isChecked}, pos = ${noteListTmp.lastIndexOf(note)}, note = ${note.desc}")
+        if (!note.isChecked) {
+            val n = noteListTmp.remove(note)
+            noteListTmp.add(note)
+            Log.i("TOGGLE CHECK NOTE", "TRUE. add to last place")
+        } else {
+            val n = noteListTmp.remove(note)
+            noteListTmp.add(1, note)
+            Log.i("TOGGLE CHECK NOTE", "FALSE. add to 1 place")
         }
+        val c = Calendar.getInstance()
+        // Проставляем дату завершения и флаг переворачиваем
+        note.doneDate = SimpleDateFormat("yyyy-MM-dd", Locale.GERMAN).format(c.time)
+        note.isChecked = !note.isChecked
+        // Update all list
+        moveNotesToDb()
     }
 
     fun getNote(id: Int): LiveData<com.example.test.data.Note> {
