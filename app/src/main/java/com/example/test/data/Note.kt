@@ -8,11 +8,11 @@ import androidx.room.PrimaryKey
 data class Note (
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     @ColumnInfo(name = "title") val title: String,
-    @ColumnInfo(name = "description") val desc: String,
-    @ColumnInfo(name = "is_checked") val isChecked: Boolean,
-    @ColumnInfo(name = "is_future") val isFuture: Boolean,
-    @ColumnInfo(name = "done_date", defaultValue = "CURRENT_TIMESTAMP") val doneDate: String,
-    @ColumnInfo(name = "is_section") val isSection: Boolean,
-    @ColumnInfo("position") val pos: Int,
-    @ColumnInfo("section") val section: String
+    @ColumnInfo(name = "description") var desc: String,
+    @ColumnInfo(name = "is_checked") var isChecked: Boolean,
+    @ColumnInfo(name = "is_future") var isFuture: Boolean,
+    @ColumnInfo(name = "done_date", defaultValue = "CURRENT_TIMESTAMP") var doneDate: String,
+    @ColumnInfo(name = "is_section") var isSection: Boolean,
+    @ColumnInfo("position") var pos: Int,
+    @ColumnInfo("section") var section: String
 )

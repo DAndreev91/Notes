@@ -9,7 +9,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.asLiveData
+import androidx.lifecycle.distinctUntilChanged
 import androidx.lifecycle.map
+import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import com.example.test.data.NoteDao
 import com.google.gson.GsonBuilder
@@ -19,12 +21,14 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
-
+import kotlin.math.abs
 
 
 class NoteViewModel(private val noteDao: NoteDao, application: Application) : AndroidViewModel(application) {
 
-    val allNotes:LiveData<List<com.example.test.data.Note>> = noteDao.getNotes().asLiveData()
+    val allNotes: LiveData<List<com.example.test.data.Note>> = noteDao.getNotes().asLiveData()
+    val allNotesForView: MutableLiveData<List<com.example.test.data.Note>> = MutableLiveData()
+    private var noteListTmp = mutableListOf<com.example.test.data.Note>()
 
     lateinit var noteArchiveList: MutableList<Note>
     private val mainListFileName = "QueueFile.txt"
@@ -41,6 +45,8 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
     private var doneSectionPos: Int = 0
     private val nullDateStr = "01.01.1900"
     private val hoursBeforeArchiving = 0.01
+    private var preFrom = 0
+    private var preTo = 0
 
     inner class NoteState(var prePos: Int, var postPos: Int, var isSectionChanged: Boolean, var sectionPrePos: Int, var sectionPostPos: Int)
 
@@ -50,6 +56,17 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
     fun initLists() {
         noteArchiveList = mutableListOf()
         setNoteArchive()
+    }
+
+    fun setNotesFromDB() {
+        allNotesForView.value = allNotes.value
+    }
+
+    private fun updateNotesPositions(tmpList: MutableList<com.example.test.data.Note>): MutableList<com.example.test.data.Note> {
+        tmpList.forEachIndexed{
+            index, note -> note.pos = index
+        }
+        return tmpList
     }
 
     /*
@@ -216,34 +233,31 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         }
     }
 
-    private fun getSectionFromPosition(to: Int): com.example.test.data.Note? {
+    private fun getSectionFromPosition(noteList: List<com.example.test.data.Note>, to: Int): String? {
         return  try {
-            allNotes.value!!.filterIndexed { index, note -> note.isSection && index <= to }.last()
+            noteList.filterIndexed { index, note -> note.isSection && index <= to }.last().section
         } catch (e: NoSuchElementException) {
             null
         }
     }
 
-    private fun getNewNoteState(from: Int, to: Int): String {
+    private fun setNoteSectionOnNewPos(noteList: MutableList<com.example.test.data.Note>, to: Int) {
         // Определяем на какой позиции будут записи секций и откуда соответственно искать первую секцию
-        return  (when (to < from) {
-            true -> getSectionFromPosition(to-1)?.section
-            else -> getSectionFromPosition(to)?.section
-        }) ?: "Active"
+        noteList[to].section = (getSectionFromPosition(noteList, to)) ?: "Active"
     }
 
     private fun setNoteArchive() {
         noteArchive.value = noteArchiveList
     }
 
-    /*
-    private fun setIsChecked(note: Note, isChecked: Boolean) {
+
+    private fun setIsChecked(note: com.example.test.data.Note, isChecked: Boolean) {
         note.isChecked = isChecked
         val c = Calendar.getInstance()
-        note.doneDate = SimpleDateFormat("dd.MM.yyyy", Locale.GERMAN).format(c.time)
+        note.doneDate = SimpleDateFormat("yyyy-MM-dd", Locale.GERMAN).format(c.time)
         Log.e("doneDate", note.doneDate)
     }
-     */
+
     /*
     private fun refreshSections() {
         if (preSection != null) {
@@ -290,14 +304,26 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
      */
 
 
-
     fun moveNote(from: Int, to: Int) {
-        if (from != to) {
+        // Защита от идиотизма (
+        // 1. когда с UI приходит команда два раза подряд с одним и тем же from и to
+        // 2. когда с UI приходит команда перескочить через один элемент (from-to > 1/-1) из-за того что не успела view обновиться из livedata
+        if ((preFrom != from || preTo != to) && from != to && abs(from-to) == 1) {
+            noteListTmp = allNotesForView.value!!.toMutableList()
+            // Swapping note to new place. Old logic had refreshNoteState exec here
+            Collections.swap(noteListTmp, from, to)
+            allNotesForView.value = noteListTmp
+            setNoteSectionOnNewPos(noteListTmp, to)
+            preFrom = from
+            preTo = to
             Log.d("MOVE NOTE", "from = $from; to = $to")
-            val newSection = getNewNoteState(from, to)
-            viewModelScope.launch {
-                noteDao.updateNotesPositions(from, to, newSection)
-            }
+        }
+    }
+
+    fun moveNoteToDb() {
+        viewModelScope.launch {
+            noteListTmp = updateNotesPositions(noteListTmp)
+            noteDao.insertAll(noteListTmp)
         }
     }
 

@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.test.data.Note
 import com.example.test.databinding.FragmentRecyclerBinding
 import com.google.android.material.snackbar.Snackbar
 import java.text.SimpleDateFormat
@@ -48,6 +49,9 @@ class RecyclerFragment: Fragment() {
         recyclerView.itemAnimator = DefaultItemAnimator()
 
         noteViewModel.allNotes.observe(viewLifecycleOwner) {
+            noteViewModel.setNotesFromDB()
+        }
+        noteViewModel.allNotesForView.observe(viewLifecycleOwner) {
             it.let { adapter.submitList(it) }
         }
 
@@ -101,7 +105,7 @@ class RecyclerFragment: Fragment() {
                     from = viewHolder.adapterPosition
                 }
                 to = target.adapterPosition
-                //adapter.notifyItemMoved(viewHolder.adapterPosition, target.adapterPosition)
+                noteViewModel.moveNote(viewHolder.adapterPosition, target.adapterPosition)
                 return true
             }
 
@@ -111,9 +115,13 @@ class RecyclerFragment: Fragment() {
                     drag = true;
                 }
                 if(actionState == ItemTouchHelper.ACTION_STATE_IDLE && drag) {
-                    noteViewModel.moveNote(from, to)
-                    from = -1
-                    to = -1
+                    if (from != to) {
+                        Log.d("FINISH MOVE NOTE", "FINISH MOVE NOTE! from = $from; to = $to")
+                        noteViewModel.moveNoteToDb()
+                        drag = false
+                        from = -1
+                        to = -1
+                    }
                 }
             }
 
