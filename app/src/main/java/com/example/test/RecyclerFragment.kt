@@ -52,7 +52,10 @@ class RecyclerFragment: Fragment() {
             noteViewModel.setNotesFromDB()
         }
         noteViewModel.allNotesForView.observe(viewLifecycleOwner) {
-            it.let { adapter.submitList(it) }
+            it.let {
+                it.forEachIndexed { index, note -> Log.i("SUBMIT LIST", "index = $index id = ${note.id} title = ${note.title} desc = ${note.desc} section = ${note.section} pos = ${note.pos}") }
+                adapter.submitList(it)
+            }
         }
 
         /*
@@ -109,7 +112,7 @@ class RecyclerFragment: Fragment() {
                 }
                 to = target.adapterPosition
                 noteViewModel.moveNote(viewHolder.adapterPosition, target.adapterPosition)
-                adapter.notifyItemChanged(target.adapterPosition)
+                //adapter.notifyItemChanged(target.adapterPosition)
                 return true
             }
 
@@ -121,7 +124,7 @@ class RecyclerFragment: Fragment() {
                 if(actionState == ItemTouchHelper.ACTION_STATE_IDLE && drag) {
                     if (from != to) {
                         Log.d("FINISH MOVE NOTE", "FINISH MOVE NOTE! from = $from; to = $to")
-                        noteViewModel.moveNotesToDb()
+                        //noteViewModel.moveNotesToDb()
                         drag = false
                         from = -1
                         to = -1

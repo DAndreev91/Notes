@@ -2,6 +2,7 @@ package com.example.test
 
 import android.graphics.Color
 import android.graphics.Typeface
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,22 +10,23 @@ import androidx.databinding.adapters.TextViewBindingAdapter.setTextSize
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.example.test.data.Note
 import com.example.test.databinding.NoteItemBinding
 
-class NoteListAdapter(private val cardClick: (Int) -> Unit, private val checkClick: (Int) -> Unit): ListAdapter<com.example.test.data.Note, NoteListAdapter.NoteListViewHolder>(DiffCallback) {
+class NoteListAdapter(private val cardClick: (Int) -> Unit, private val checkClick: (Int) -> Unit): ListAdapter<Note, NoteListAdapter.NoteListViewHolder>(DiffCallback) {
 
-    companion object DiffCallback: DiffUtil.ItemCallback<com.example.test.data.Note>() {
-        override fun areItemsTheSame(oldItem: com.example.test.data.Note, newItem: com.example.test.data.Note): Boolean {
+    companion object DiffCallback: DiffUtil.ItemCallback<Note>() {
+        override fun areItemsTheSame(oldItem: Note, newItem: Note): Boolean {
             return oldItem.id == newItem.id
         }
 
-        override fun areContentsTheSame(oldItem: com.example.test.data.Note, newItem: com.example.test.data.Note): Boolean {
+        override fun areContentsTheSame(oldItem: Note, newItem: Note): Boolean {
             return oldItem == newItem
         }
     }
 
     inner class NoteListViewHolder(private val binding: NoteItemBinding): RecyclerView.ViewHolder(binding.root) {
-        fun bind(cardClick: (Int) -> Unit, checkClick: (Int) -> Unit, pos: Int, note: com.example.test.data.Note) {
+        fun bind(cardClick: (Int) -> Unit, checkClick: (Int) -> Unit, pos: Int, note: Note) {
             binding.apply {
                 // Если не секция
                 if (!note.isSection) {
@@ -68,7 +70,16 @@ class NoteListAdapter(private val cardClick: (Int) -> Unit, private val checkCli
     }
 
     override fun onBindViewHolder(holder: NoteListAdapter.NoteListViewHolder, position: Int) {
+        currentList.forEachIndexed { index, note -> Log.i("SUBMIT SUCCESSFULL", "index = $index id = ${note.id} title = ${note.title} desc = ${note.desc} section = ${note.section} pos = ${note.pos}") }
         holder.bind(cardClick, checkClick, position, getItem(position))
     }
 
+    override fun onCurrentListChanged(
+        previousList: MutableList<Note>,
+        currentList: MutableList<Note>
+    ) {
+        previousList.forEachIndexed { index, note -> Log.i("SUBMIT PREVIOUS", "index = $index id = ${note.id} title = ${note.title} desc = ${note.desc} section = ${note.section} pos = ${note.pos}") }
+        currentList.forEachIndexed { index, note -> Log.i("SUBMIT CURRENT", "index = $index id = ${note.id} title = ${note.title} desc = ${note.desc} section = ${note.section} pos = ${note.pos}") }
+        super.onCurrentListChanged(previousList, currentList)
+    }
 }
