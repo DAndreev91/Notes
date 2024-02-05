@@ -68,7 +68,31 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         allNotesForView.value = allNotes.value
     }
 
-    private fun updateNotesAfterMoving(tmpList: List<Note>, moveToPosition: Int): List<Note> {
+    private fun updateNotesAfterMoving(tmpList: List<Note>, moveToPosition: Int) {
+        tmpList.forEachIndexed { index, note ->
+            note.pos = index
+            note.section = when (index) {
+                moveToPosition -> (getSectionFromPosition(tmpList, index)) ?: ACTIVE
+                else -> note.section
+            }
+            when (note.section) {
+                ACTIVE -> {
+                    note.isChecked = false
+                    note.isFuture = false
+                }
+                PLANNED -> {
+                    note.isChecked = false
+                    note.isFuture = true
+                }
+                DONE -> {
+                    note.isChecked = true
+                    note.isFuture = false
+                }
+            }
+        }
+    }
+
+    private fun getNewNotesListAfterMoving(tmpList: List<Note>, moveToPosition: Int): List<Note> {
         return tmpList.mapIndexed(){
             index, note ->
             var isChecked = note.isChecked
@@ -359,14 +383,12 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         // 1. когда с UI приходит команда два раза подряд с одним и тем же from и to
         // 2. когда с UI приходит команда перескочить через один элемент (from-to > 1/-1) из-за того что не успела view обновиться из livedata
         if ((preFrom != from || preTo != to) && from != to && abs(from-to) == 1) {
-            val noteListTmp = allNotesForView.value!!
+            noteListTmp = allNotesForView.value!!.toMutableList()
             // Swapping note to new place. Old logic had refreshNoteState exec here
             Collections.swap(noteListTmp, from, to)
-            // Нужно полностью пересобрать изменённые объекты внутри списка, а не менять свойства внутри
-            noteListTmpList = updateNotesAfterMoving(noteListTmp, to)
-            Log.i("MOVE NOTE STATE", "noteListTmp isChecked = ${noteListTmp[to].isChecked}; isFuture = ${noteListTmp[to].isFuture}")
-            allNotesForView.value = noteListTmpList
-            noteListTmpList = mutableListOf()
+            // Обновляем список при каждом перетаскивании, но при этом не вызывая diffUtil (не меняем свойства списка, только индексы)
+            // Только в конце пересобираем список и обновляем listAdapter
+            allNotesForView.value = noteListTmp
             preFrom = from
             preTo = to
             Log.d("MOVE NOTE", "from = $from; to = $to")
@@ -374,11 +396,14 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
     }
 
     fun moveNotesToDb() {
+        // Нужно полностью пересобрать изменённые объекты внутри списка, а не менять свойства внутри
+        noteListTmpList = getNewNotesListAfterMoving(noteListTmp, preTo)
         clearPrePositions()
-        //allNotesForView.value = noteListTmpList
-        /*viewModelScope.launch {
+        // Обновляем список в RV вызывая DiffUtil уже после отпускания/сброса элемента
+        allNotesForView.value = noteListTmpList
+        viewModelScope.launch {
             noteDao.insertAll(allNotesForView.value!!)
-        }*/
+        }
     }
 
     fun deleteNote(pos: Int) {
