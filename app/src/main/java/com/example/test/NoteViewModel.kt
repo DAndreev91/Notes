@@ -407,6 +407,7 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
     }
 
     fun deleteNote(pos: Int) {
+        // перевести на работу с другим списком
         allNotes.value?.get(pos)?.let {
             deleteNotePos = pos
             deleteNote = it
