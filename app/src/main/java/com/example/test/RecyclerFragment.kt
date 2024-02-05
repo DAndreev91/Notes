@@ -104,6 +104,7 @@ class RecyclerFragment: Fragment() {
                 viewHolder: RecyclerView.ViewHolder,
                 target: RecyclerView.ViewHolder
             ): Boolean {
+                Log.d("START MOVE NOTE", "START MOVE NOTE! from = ${viewHolder.adapterPosition}; to = ${target.adapterPosition}")
                 if (target.adapterPosition == 0) {
                     return false
                 }
@@ -124,7 +125,7 @@ class RecyclerFragment: Fragment() {
                 if(actionState == ItemTouchHelper.ACTION_STATE_IDLE && drag) {
                     if (from != to) {
                         Log.d("FINISH MOVE NOTE", "FINISH MOVE NOTE! from = $from; to = $to")
-                        //noteViewModel.moveNotesToDb()
+                        noteViewModel.moveNotesToDb()
                         drag = false
                         from = -1
                         to = -1

@@ -24,6 +24,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.abs
+import kotlin.text.Typography.section
 
 const val ACTIVE = "Active"
 const val PLANNED = "Planned"
@@ -51,6 +52,7 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
     private val hoursBeforeArchiving = 0.01
     private var preFrom = 0
     private var preTo = 0
+    private var noteListTmpList: List<Note> = mutableListOf()
 
     inner class NoteState(var prePos: Int, var postPos: Int, var isSectionChanged: Boolean, var sectionPrePos: Int, var sectionPostPos: Int)
 
@@ -66,9 +68,34 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         allNotesForView.value = allNotes.value
     }
 
-    private fun updateNotesPositions(tmpList: List<Note>): List<Note> {
+    private fun updateNotesAfterMoving(tmpList: List<Note>, moveToPosition: Int): List<Note> {
         return tmpList.mapIndexed(){
-            index, note -> Note(note.id, note.title, note.desc, note.isChecked, note.isFuture, note.doneDate, note.isSection, index, note.section)
+            index, note ->
+            var isChecked = note.isChecked
+            var isFuture = note.isFuture
+            val isSection = note.isSection
+            var section = note.section
+            section = when (index) {
+                moveToPosition -> (getSectionFromPosition(tmpList, index)) ?: ACTIVE
+                else -> note.section
+            }
+            when (section) {
+                ACTIVE -> {
+                    isChecked = false
+                    isFuture = false
+                }
+                PLANNED -> {
+                    isChecked = false
+                    isFuture = true
+                }
+                DONE -> {
+                    isChecked = true
+                    isFuture = false
+                }
+            }
+            Log.i("MOVE NOTE. NEW LIST", "$index. isChecked = $isChecked; isFuture = $isFuture; isSection = $isSection; section = $section")
+            Note(note.id, note.title, note.desc, isChecked, isFuture, note.doneDate, isSection, index, section)
+
         }
     }
 
@@ -322,20 +349,24 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
 
      */
 
+    private fun clearPrePositions() {
+        preFrom = -1
+        preTo = -1
+    }
 
     fun moveNote(from: Int, to: Int) {
         // Защита от идиотизма (
         // 1. когда с UI приходит команда два раза подряд с одним и тем же from и to
         // 2. когда с UI приходит команда перескочить через один элемент (from-to > 1/-1) из-за того что не успела view обновиться из livedata
         if ((preFrom != from || preTo != to) && from != to && abs(from-to) == 1) {
-            val noteListTmp = allNotesForView.value!!.toMutableList()
+            val noteListTmp = allNotesForView.value!!
             // Swapping note to new place. Old logic had refreshNoteState exec here
             Collections.swap(noteListTmp, from, to)
             // Нужно полностью пересобрать изменённые объекты внутри списка, а не менять свойства внутри
-            //setNoteSectionOnNewPos(noteListTmpList, to)
-            val noteListTmpList = updateNotesPositions(noteListTmp.toList())
+            noteListTmpList = updateNotesAfterMoving(noteListTmp, to)
             Log.i("MOVE NOTE STATE", "noteListTmp isChecked = ${noteListTmp[to].isChecked}; isFuture = ${noteListTmp[to].isFuture}")
             allNotesForView.value = noteListTmpList
+            noteListTmpList = mutableListOf()
             preFrom = from
             preTo = to
             Log.d("MOVE NOTE", "from = $from; to = $to")
@@ -343,9 +374,11 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
     }
 
     fun moveNotesToDb() {
-        viewModelScope.launch {
+        clearPrePositions()
+        //allNotesForView.value = noteListTmpList
+        /*viewModelScope.launch {
             noteDao.insertAll(allNotesForView.value!!)
-        }
+        }*/
     }
 
     fun deleteNote(pos: Int) {
@@ -405,7 +438,7 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
     }
 
     fun isNoteSection(position: Int): Boolean {
-        return allNotes.value?.get(position)?.isSection ?: false
+        return allNotesForView.value?.get(position)?.isSection ?: false
     }
 
     // Methods for noteList persistence
