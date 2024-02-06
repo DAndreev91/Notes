@@ -1,6 +1,5 @@
 package com.example.test
 
-import android.opengl.Visibility
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -8,16 +7,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.test.data.Note
 import com.example.test.databinding.FragmentRecyclerBinding
 import com.google.android.material.snackbar.Snackbar
-import java.text.SimpleDateFormat
-import java.util.*
 
 class RecyclerFragment: Fragment() {
     private lateinit var binding: FragmentRecyclerBinding
@@ -33,7 +28,6 @@ class RecyclerFragment: Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        //super.onViewCreated(view, savedInstanceState)
         binding = FragmentRecyclerBinding.inflate(layoutInflater)
         return binding.root
     }
@@ -58,43 +52,6 @@ class RecyclerFragment: Fragment() {
             }
         }
 
-        /*
-        // Observe
-        noteViewModel.notePosChange.observe(activity as MainActivity) {
-            // notify adapter about dml operations
-            // Delete item
-            if (it.postPos == -1 && it.prePos >= 0) {
-                adapter.notifyItemRemoved(it.prePos)
-                // upd sections
-                adapter.notifyItemChanged(it.sectionPrePos)
-            }
-            // Add item
-            else if (it.prePos == -1 && it.postPos >= 0) {
-                adapter.notifyItemInserted(it.postPos)
-                // upd sections
-                adapter.notifyItemChanged(it.sectionPostPos)
-            }
-            // Change item
-            else if (it.prePos >= 0 && it.postPos >= 0 && it.postPos == it.prePos) {
-                adapter.notifyItemChanged(it.postPos)
-            }
-            // Move from/to Done section or check item as done
-            else if (it.prePos >= 0 && it.postPos >= 0 /*&& it.isSectionChanged*/
-            ){
-                adapter.notifyItemMoved(it.prePos, it.postPos)
-                adapter.notifyItemChanged(it.postPos)
-                // upd sections
-                adapter.notifyItemChanged(it.sectionPrePos)
-                adapter.notifyItemChanged(it.sectionPostPos)
-            }
-            // scroll to top when we adding item to not done section
-            if (it.postPos == 0) {
-                binding.recyclerViewIdFr.scrollToPosition(0)
-            }
-        }
-
-         */
-
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.LEFT){
             var from = -1
             var to = -1
@@ -113,7 +70,6 @@ class RecyclerFragment: Fragment() {
                 }
                 to = target.adapterPosition
                 noteViewModel.moveNote(viewHolder.adapterPosition, target.adapterPosition)
-                //adapter.notifyItemChanged(target.adapterPosition)
                 return true
             }
 
@@ -143,7 +99,7 @@ class RecyclerFragment: Fragment() {
                     }
                     return super.getDragDirs(recyclerView, viewHolder)
                 } catch (e:IndexOutOfBoundsException) {
-                    // In case of changing list inside coroutine bc i don't know how send signal from within coroutine
+                    // In case of changing list inside coroutine bc i don't know how to send signal within coroutine
                     return 0
                 }
 
@@ -159,7 +115,7 @@ class RecyclerFragment: Fragment() {
                     }
                     return super.getSwipeDirs(recyclerView, viewHolder)
                 } catch (e:IndexOutOfBoundsException) {
-                    // In case of changing list inside coroutine bc i don't know how send signal from within coroutine
+                    // In case of changing list inside coroutine bc i don't know how send signal within coroutine
                     return 0
                 }
             }

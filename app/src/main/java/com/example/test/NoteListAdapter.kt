@@ -73,16 +73,7 @@ class NoteListAdapter(private val cardClick: (Int) -> Unit, private val checkCli
     }
 
     override fun onBindViewHolder(holder: NoteListAdapter.NoteListViewHolder, position: Int) {
-        //currentList.forEachIndexed { index, note -> Log.i("SUBMIT SUCCESSFULL", "index = $index id = ${note.id} title = ${note.title} desc = ${note.desc} section = ${note.section} pos = ${note.pos} isChecked = ${note.isChecked} isFuture = ${note.isFuture} isSection = ${note.isSection}") }
+        currentList.forEachIndexed { index, note -> Log.d("SUBMIT SUCCESSFULL", "index = $index id = ${note.id} title = ${note.title} desc = ${note.desc} section = ${note.section} pos = ${note.pos} isChecked = ${note.isChecked} isFuture = ${note.isFuture} isSection = ${note.isSection}") }
         holder.bind(cardClick, checkClick, currentList[position])
-    }
-
-    override fun onCurrentListChanged(
-        previousList: MutableList<Note>,
-        currentList: MutableList<Note>
-    ) {
-        previousList.forEachIndexed { index, note -> Log.i("SUBMIT PREVIOUS", "index = $index id = ${note.id} title = ${note.title} desc = ${note.desc} section = ${note.section} pos = ${note.pos} isChecked = ${note.isChecked} isFuture = ${note.isFuture} isSection = ${note.isSection}") }
-        currentList.forEachIndexed { index, note -> Log.i("SUBMIT CURRENT", "index = $index id = ${note.id} title = ${note.title} desc = ${note.desc} section = ${note.section} pos = ${note.pos} isChecked = ${note.isChecked} isFuture = ${note.isFuture} isSection = ${note.isSection}") }
-        super.onCurrentListChanged(previousList, currentList)
     }
 }

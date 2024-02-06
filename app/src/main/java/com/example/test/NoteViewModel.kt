@@ -119,7 +119,6 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
             }
             Log.i("MOVE NOTE. NEW LIST", "$index. isChecked = $isChecked; isFuture = $isFuture; isSection = $isSection; section = $section")
             Note(note.id, note.title, note.desc, isChecked, isFuture, note.doneDate, isSection, index, section)
-
         }
     }
 
@@ -408,7 +407,7 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
 
     fun deleteNote(pos: Int) {
         // перевести на работу с другим списком
-        allNotes.value?.get(pos)?.let {
+        allNotesForView.value?.get(pos)?.let {
             deleteNotePos = pos
             deleteNote = it
             viewModelScope.launch {

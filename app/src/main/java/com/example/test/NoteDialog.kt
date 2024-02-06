@@ -37,7 +37,7 @@ class NoteDialog: DialogFragment() {
                 isChecked = false,
                 isFuture = false,
                 isSection = false,
-                doneDate = SimpleDateFormat("dd.MM.yyyy", Locale.GERMAN).format(Date()),
+                doneDate = SimpleDateFormat("yyyy-MM-dd", Locale.GERMAN).format(Date()),
                 pos = 1,
                 section = "Active"
             )
