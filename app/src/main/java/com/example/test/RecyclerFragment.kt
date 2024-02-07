@@ -133,15 +133,15 @@ class RecyclerFragment: Fragment() {
         }).attachToRecyclerView(recyclerView)
 
         binding.fabFr.setOnClickListener {
-            try {
+            //try {
                 openDialog(null)
-            } catch(e:Exception) {
+            /*} catch(e:Exception) {
                 binding.logView.text = e.stackTraceToString()
                 binding.logView.visibility = View.VISIBLE
                 binding.logView.setOnClickListener {
                     binding.logView.visibility = View.GONE
                 }
-            }
+            }*/
         }
     }
 
@@ -151,17 +151,18 @@ class RecyclerFragment: Fragment() {
     }
 
     private fun openDialog (id: Int?) {
-        try {
-            val dialog = NoteDialog()
+        Log.i("OPEN DIALOG", "id = $id")
+        //try {
+            val dialog = NoteDialog(noteViewModel)
             dialog.setDialogNote(id)
             dialog.show(parentFragmentManager, "1")
-        } catch(e:Exception) {
+        /*} catch(e:Exception) {
             binding.logView.text = e.stackTraceToString()
             binding.logView.visibility = View.VISIBLE
             binding.logView.setOnClickListener {
                 binding.logView.visibility = View.GONE
             }
-        }
+        }*/
     }
 
     companion object {

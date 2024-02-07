@@ -105,7 +105,7 @@ class HistoryFragment : Fragment() {
     }
 
     private fun openDialog (pos: Int) {
-        val dialog = NoteDialog()
+        val dialog = NoteDialog(noteViewModel)
         dialog.setDialogNote(pos)
         dialog.setTextNonEditable()
         dialog.show(parentFragmentManager, "1")

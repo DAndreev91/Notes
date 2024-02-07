@@ -6,6 +6,7 @@ import android.content.DialogInterface
 import android.graphics.Color
 import android.os.Bundle
 import android.text.InputType
+import android.util.Log
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
@@ -14,20 +15,21 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class NoteDialog: DialogFragment() {
+class NoteDialog(val viewModel: NoteViewModel): DialogFragment() {
     lateinit var note: com.example.test.data.Note
     private var isEditable = true
     private lateinit var binding: NoteIuBinding
-    private val noteViewModel: NoteViewModel by activityViewModels {
+    /*private val noteViewModel: NoteViewModel? by activityViewModels {
         NoteViewModelFactory(
             (activity?.application as NoteApplication).database.noteDao(),
             activity?.application as NoteApplication
         )
-    }
+    }*/
 
     fun setDialogNote(id: Int?) {
         if (id != null) {
-            noteViewModel.getNote(id).observe(viewLifecycleOwner) {
+            Log.i("SET DIALOG NOTE", "id = $id; noteViewModel = $viewModel")
+            viewModel.getNote(id).observe(viewLifecycleOwner) {
                 note = it
             }
         } else {
@@ -81,7 +83,7 @@ class NoteDialog: DialogFragment() {
                 note.section
             )
 
-            noteViewModel.addNote(newNote)
+            viewModel.addNote(newNote)
         }
         super.onDismiss(dialog)
     }
