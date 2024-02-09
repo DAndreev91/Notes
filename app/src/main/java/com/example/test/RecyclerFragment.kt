@@ -134,7 +134,7 @@ class RecyclerFragment: Fragment() {
 
         binding.fabFr.setOnClickListener {
             //try {
-                openDialog(null)
+                openDialog(-1)
             /*} catch(e:Exception) {
                 binding.logView.text = e.stackTraceToString()
                 binding.logView.visibility = View.VISIBLE
@@ -151,11 +151,13 @@ class RecyclerFragment: Fragment() {
     }
 
     private fun openDialog (id: Int?) {
-        Log.i("OPEN DIALOG", "id = $id")
+
         //try {
             val dialog = NoteDialog()
+            dialog.show(childFragmentManager, "1")
             dialog.setDialogNote(id)
-            dialog.show(parentFragmentManager, "1")
+            //noteViewModel.setNoteById(id!!)
+            //Log.i("OPEN DIALOG", "id = $id")
         /*} catch(e:Exception) {
             binding.logView.text = e.stackTraceToString()
             binding.logView.visibility = View.VISIBLE

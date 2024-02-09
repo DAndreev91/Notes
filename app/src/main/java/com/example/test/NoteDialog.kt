@@ -11,6 +11,7 @@ import android.view.View
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.example.test.data.Note
 import com.example.test.databinding.NoteIuBinding
 import java.text.SimpleDateFormat
@@ -67,16 +68,12 @@ class NoteDialog(): DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         binding = NoteIuBinding.inflate(layoutInflater)
-        return AlertDialog.Builder(requireActivity()).setView(binding.root).create()
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        noteViewModel?.getNote(noteId)?.observe(viewLifecycleOwner) {
+        noteViewModel?.getNote(noteId)?.observe(requireParentFragment().viewLifecycleOwner) {
+            Log.i("OPEN DIALOG", "id = $noteId")
             note = it
             bind(note)
         }
+        return AlertDialog.Builder(requireActivity()).setView(binding.root).create()
     }
 
     fun setTextNonEditable() {

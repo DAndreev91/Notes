@@ -44,6 +44,7 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
     var notePosChange: MutableLiveData<NoteState> = MutableLiveData()
     var noteArchive: MutableLiveData<MutableList<Note>> = MutableLiveData()
 
+    private var noteId: Int = -1
     private var deleteNotePos: Int = -1
     private lateinit var deleteNote: Note
     private val noteState = NoteState(-1,-1, false, 0, 0)
@@ -460,6 +461,16 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
 
     fun getNote(id: Int): LiveData<Note> {
         return noteDao.getNote(id).asLiveData()
+    }
+
+    fun setNoteById(noteId: Int) {
+        Log.i("OPEN DIALOG SET NOTEID", "noteId = $noteId")
+        this.noteId = noteId
+    }
+
+    fun getNoteById(): LiveData<Note> {
+        Log.i("OPEN DIALOG GET NOTEBYID", "this.noteId = ${this.noteId}")
+        return noteDao.getNote(this.noteId).asLiveData()
     }
 
     fun isNoteSection(position: Int): Boolean {
