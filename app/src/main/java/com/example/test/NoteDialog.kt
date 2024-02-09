@@ -7,33 +7,33 @@ import android.graphics.Color
 import android.os.Bundle
 import android.text.InputType
 import android.util.Log
+import android.view.View
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
+import com.example.test.data.Note
 import com.example.test.databinding.NoteIuBinding
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class NoteDialog(val viewModel: NoteViewModel): DialogFragment() {
-    lateinit var note: com.example.test.data.Note
+class NoteDialog(): DialogFragment() {
+    lateinit var note: Note
+    private var noteId: Int = 0
     private var isEditable = true
     private lateinit var binding: NoteIuBinding
-    /*private val noteViewModel: NoteViewModel? by activityViewModels {
+    private val noteViewModel: NoteViewModel? by activityViewModels {
         NoteViewModelFactory(
             (activity?.application as NoteApplication).database.noteDao(),
             activity?.application as NoteApplication
         )
-    }*/
+    }
 
     fun setDialogNote(id: Int?) {
         if (id != null) {
-            Log.i("SET DIALOG NOTE", "id = $id; noteViewModel = $viewModel")
-            viewModel.getNote(id).observe(viewLifecycleOwner) {
-                note = it
-            }
+            noteId = id
         } else {
-            note = com.example.test.data.Note(
+            note = Note(
                 title = "",
                 desc = "",
                 isChecked = false,
@@ -43,26 +43,40 @@ class NoteDialog(val viewModel: NoteViewModel): DialogFragment() {
                 pos = 1,
                 section = "Active"
             )
+            bind(note)
         }
     }
 
-    fun setDialogNote(newNote: com.example.test.data.Note) {
+    fun setDialogNote(newNote: Note) {
         note = newNote
+    }
+
+    private fun bind(newNote: Note) {
+        binding.apply {
+            noteDesc.setText(newNote.desc)
+            if (newNote.isChecked) {
+                noteDesc.setTextColor(Color.LTGRAY)
+            } else {
+                noteDesc.setTextColor(Color.BLACK)
+            }
+            if (!isEditable) {
+                noteDesc.inputType = InputType.TYPE_NULL
+            }
+        }
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         binding = NoteIuBinding.inflate(layoutInflater)
-        //binding.noteTitle.setText(note.title)
-        binding.noteDesc.setText(note.desc)
-        if (note.isChecked) {
-            binding.noteDesc.setTextColor(Color.LTGRAY)
-        } else {
-            binding.noteDesc.setTextColor(Color.BLACK)
-        }
-        if (!isEditable) {
-            binding.noteDesc.inputType = InputType.TYPE_NULL
-        }
         return AlertDialog.Builder(requireActivity()).setView(binding.root).create()
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        noteViewModel?.getNote(noteId)?.observe(viewLifecycleOwner) {
+            note = it
+            bind(note)
+        }
     }
 
     fun setTextNonEditable() {
@@ -71,7 +85,7 @@ class NoteDialog(val viewModel: NoteViewModel): DialogFragment() {
 
     override fun onCancel(dialog: DialogInterface) {
         if (isEditable) {
-            val newNote = com.example.test.data.Note (
+            val newNote = Note (
                 note.id,
                 note.title,
                 binding.noteDesc.text.toString(),
@@ -83,7 +97,7 @@ class NoteDialog(val viewModel: NoteViewModel): DialogFragment() {
                 note.section
             )
 
-            viewModel.addNote(newNote)
+            noteViewModel?.addNote(newNote)
         }
         super.onDismiss(dialog)
     }

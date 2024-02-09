@@ -153,7 +153,7 @@ class RecyclerFragment: Fragment() {
     private fun openDialog (id: Int?) {
         Log.i("OPEN DIALOG", "id = $id")
         //try {
-            val dialog = NoteDialog(noteViewModel)
+            val dialog = NoteDialog()
             dialog.setDialogNote(id)
             dialog.show(parentFragmentManager, "1")
         /*} catch(e:Exception) {
