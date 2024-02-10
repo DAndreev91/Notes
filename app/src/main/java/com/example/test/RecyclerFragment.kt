@@ -76,7 +76,7 @@ class RecyclerFragment: Fragment() {
             override fun onSelectedChanged(viewHolder: RecyclerView.ViewHolder?, actionState: Int) {
                 super.onSelectedChanged(viewHolder, actionState)
                 if(actionState == ItemTouchHelper.ACTION_STATE_DRAG) {
-                    drag = true;
+                    drag = true
                 }
                 if(actionState == ItemTouchHelper.ACTION_STATE_IDLE && drag) {
                     if (from != to) {
@@ -133,15 +133,7 @@ class RecyclerFragment: Fragment() {
         }).attachToRecyclerView(recyclerView)
 
         binding.fabFr.setOnClickListener {
-            //try {
-                openDialog(-1)
-            /*} catch(e:Exception) {
-                binding.logView.text = e.stackTraceToString()
-                binding.logView.visibility = View.VISIBLE
-                binding.logView.setOnClickListener {
-                    binding.logView.visibility = View.GONE
-                }
-            }*/
+            openDialog(-1)
         }
     }
 
@@ -150,21 +142,10 @@ class RecyclerFragment: Fragment() {
         super.onPause()
     }
 
-    private fun openDialog (id: Int?) {
-
-        //try {
-            val dialog = NoteDialog()
-            dialog.show(childFragmentManager, "1")
-            dialog.setDialogNote(id)
-            //noteViewModel.setNoteById(id!!)
-            //Log.i("OPEN DIALOG", "id = $id")
-        /*} catch(e:Exception) {
-            binding.logView.text = e.stackTraceToString()
-            binding.logView.visibility = View.VISIBLE
-            binding.logView.setOnClickListener {
-                binding.logView.visibility = View.GONE
-            }
-        }*/
+    private fun openDialog (id: Int) {
+        val dialog = NoteDialog()
+        dialog.show(childFragmentManager, "1")
+        dialog.setDialogNote(id)
     }
 
     companion object {

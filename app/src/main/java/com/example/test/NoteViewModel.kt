@@ -1,8 +1,6 @@
 package com.example.test
 
 import android.app.Application
-import android.os.Environment
-import android.provider.ContactsContract.CommonDataKinds.Note.NOTE
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -10,21 +8,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.asLiveData
-import androidx.lifecycle.distinctUntilChanged
-import androidx.lifecycle.map
-import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import com.example.test.data.Note
 import com.example.test.data.NoteDao
-import com.google.gson.GsonBuilder
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.abs
-import kotlin.text.Typography.section
 
 const val ACTIVE = "Active"
 const val PLANNED = "Planned"
@@ -38,24 +28,24 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
     private var noteListTmp = mutableListOf<Note>()
 
     lateinit var noteArchiveList: MutableList<Note>
-    private val mainListFileName = "QueueFile.txt"
-    private val archiveListFileName = "QueueArchiveFile.txt"
+    //private val mainListFileName = "QueueFile.txt"
+    //private val archiveListFileName = "QueueArchiveFile.txt"
 
-    var notePosChange: MutableLiveData<NoteState> = MutableLiveData()
+    //var notePosChange: MutableLiveData<NoteState> = MutableLiveData()
     var noteArchive: MutableLiveData<MutableList<Note>> = MutableLiveData()
 
-    private var noteId: Int = -1
+    //private var noteId: Int = -1
     private var deleteNotePos: Int = -1
     private lateinit var deleteNote: Note
-    private val noteState = NoteState(-1,-1, false, 0, 0)
-    private var doneSectionPos: Int = 0
+    //private val noteState = NoteState(-1,-1, false, 0, 0)
+    //private var doneSectionPos: Int = 0
     private val nullDateStr = "01.01.1900"
-    private val hoursBeforeArchiving = 0.01
+    //private val hoursBeforeArchiving = 0.01
     private var preFrom = 0
     private var preTo = 0
     private var noteListTmpList: List<Note> = mutableListOf()
 
-    inner class NoteState(var prePos: Int, var postPos: Int, var isSectionChanged: Boolean, var sectionPrePos: Int, var sectionPostPos: Int)
+    //inner class NoteState(var prePos: Int, var postPos: Int, var isSectionChanged: Boolean, var sectionPrePos: Int, var sectionPostPos: Int)
 
     init {
         initLists()
@@ -68,7 +58,7 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
     fun setNotesFromDB() {
         allNotesForView.value = allNotes.value
     }
-
+/*
     private fun updateNotesAfterMoving(tmpList: List<Note>, moveToPosition: Int) {
         tmpList.forEachIndexed { index, note ->
             note.pos = index
@@ -93,14 +83,15 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         }
     }
 
+
+ */
     private fun getNewNotesListAfterMoving(tmpList: List<Note>, moveToPosition: Int): List<Note> {
         return tmpList.mapIndexed(){
             index, note ->
             var isChecked = note.isChecked
             var isFuture = note.isFuture
             val isSection = note.isSection
-            var section = note.section
-            section = when (index) {
+            val section = when (index) {
                 moveToPosition -> (getSectionFromPosition(tmpList, index)) ?: ACTIVE
                 else -> note.section
             }
@@ -282,6 +273,7 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
                         doneDate = sectionDate,
                         isSection = true
                     ))*/
+                    sectionDate = note.doneDate
                 }
             }
         }
@@ -294,7 +286,7 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
             null
         }
     }
-
+/*
     private fun setNoteSectionOnNewPos(noteList: List<Note>, to: Int) {
         // Определяем на какой позиции будут записи секций и откуда соответственно искать первую секцию
         val note = noteList[to]
@@ -316,11 +308,13 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         Log.i("MOVE NOTE", "isChecked = ${noteList[to].isChecked}; isFuture = ${noteList[to].isFuture}")
     }
 
+
+ */
     private fun setNoteArchive() {
         noteArchive.value = noteArchiveList
     }
 
-
+/*
     private fun setIsChecked(note: Note, isChecked: Boolean) {
         note.isChecked = isChecked
         val c = Calendar.getInstance()
@@ -328,6 +322,8 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         Log.e("doneDate", note.doneDate)
     }
 
+
+ */
     /*
     private fun refreshSections() {
         if (preSection != null) {
@@ -413,7 +409,7 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
             deleteNote = it
             viewModelScope.launch {
                 noteDao.delete(it)
-                noteDao.compressPositionsAfterDelete(pos)
+                noteDao.compressPositionsAfterPosition(pos)
             }
         }
     }
@@ -421,13 +417,20 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
     fun undoNote() {
         if (deleteNotePos != -1) {
             viewModelScope.launch {
-                noteDao.stretchPositionsAfterUndoDelete(deleteNotePos)
+                noteDao.stretchPositionsAfterPosition(deleteNotePos)
                 noteDao.insert(deleteNote)
             }
             deleteNotePos = -1
         }
     }
 
+    fun addNewNote(note: Note) {
+        // adding new item
+        viewModelScope.launch {
+            noteDao.stretchPositionsAfterPosition(note.pos)
+            noteDao.insert(note)
+        }
+    }
     fun addNote(note: Note) {
         // adding new item
         viewModelScope.launch {
@@ -443,11 +446,11 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         // В зависимости от флага isChecked переставляем заметку либо в начало, либо в конец
         Log.i("TOGGLE CHECK NOTE", "isChecked = ${note.isChecked}, pos = ${noteListTmp.lastIndexOf(note)}, note = ${note.desc}")
         if (!note.isChecked) {
-            val n = noteListTmp.remove(note)
+            noteListTmp.remove(note)
             noteListTmp.add(note)
             Log.i("TOGGLE CHECK NOTE", "TRUE. add to last place")
         } else {
-            val n = noteListTmp.remove(note)
+            noteListTmp.remove(note)
             noteListTmp.add(1, note)
             Log.i("TOGGLE CHECK NOTE", "FALSE. add to 1 place")
         }
@@ -461,16 +464,6 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
 
     fun getNote(id: Int): LiveData<Note> {
         return noteDao.getNote(id).asLiveData()
-    }
-
-    fun setNoteById(noteId: Int) {
-        Log.i("OPEN DIALOG SET NOTEID", "noteId = $noteId")
-        this.noteId = noteId
-    }
-
-    fun getNoteById(): LiveData<Note> {
-        Log.i("OPEN DIALOG GET NOTEBYID", "this.noteId = ${this.noteId}")
-        return noteDao.getNote(this.noteId).asLiveData()
     }
 
     fun isNoteSection(position: Int): Boolean {

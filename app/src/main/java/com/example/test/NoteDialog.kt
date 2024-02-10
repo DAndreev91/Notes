@@ -7,11 +7,8 @@ import android.graphics.Color
 import android.os.Bundle
 import android.text.InputType
 import android.util.Log
-import android.view.View
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import com.example.test.data.Note
 import com.example.test.databinding.NoteIuBinding
 import java.text.SimpleDateFormat
@@ -23,6 +20,16 @@ class NoteDialog(): DialogFragment() {
     private var noteId: Int = 0
     private var isEditable = true
     private lateinit var binding: NoteIuBinding
+    private val newNoteTemplate = Note(
+        title = "",
+        desc = "",
+        isChecked = false,
+        isFuture = false,
+        isSection = false,
+        doneDate = SimpleDateFormat("yyyy-MM-dd", Locale.GERMAN).format(Date()),
+        pos = 1,
+        section = "Active"
+    )
     private val noteViewModel: NoteViewModel? by activityViewModels {
         NoteViewModelFactory(
             (activity?.application as NoteApplication).database.noteDao(),
@@ -30,26 +37,8 @@ class NoteDialog(): DialogFragment() {
         )
     }
 
-    fun setDialogNote(id: Int?) {
-        if (id != null) {
-            noteId = id
-        } else {
-            note = Note(
-                title = "",
-                desc = "",
-                isChecked = false,
-                isFuture = false,
-                isSection = false,
-                doneDate = SimpleDateFormat("yyyy-MM-dd", Locale.GERMAN).format(Date()),
-                pos = 1,
-                section = "Active"
-            )
-            bind(note)
-        }
-    }
-
-    fun setDialogNote(newNote: Note) {
-        note = newNote
+    fun setDialogNote(id: Int) {
+        noteId = id
     }
 
     private fun bind(newNote: Note) {
@@ -70,7 +59,7 @@ class NoteDialog(): DialogFragment() {
         binding = NoteIuBinding.inflate(layoutInflater)
         noteViewModel?.getNote(noteId)?.observe(requireParentFragment().viewLifecycleOwner) {
             Log.i("OPEN DIALOG", "id = $noteId")
-            note = it
+            note = it ?: newNoteTemplate
             bind(note)
         }
         return AlertDialog.Builder(requireActivity()).setView(binding.root).create()
@@ -82,19 +71,12 @@ class NoteDialog(): DialogFragment() {
 
     override fun onCancel(dialog: DialogInterface) {
         if (isEditable) {
-            val newNote = Note (
-                note.id,
-                note.title,
-                binding.noteDesc.text.toString(),
-                note.isChecked,
-                note.isFuture,
-                note.doneDate,
-                note.isSection,
-                note.pos,
-                note.section
-            )
-
-            noteViewModel?.addNote(newNote)
+            note.desc = binding.noteDesc.text.toString()
+            if (noteId == -1) {
+                noteViewModel?.addNewNote(note)
+            } else {
+                noteViewModel?.addNote(note)
+            }
         }
         super.onDismiss(dialog)
     }

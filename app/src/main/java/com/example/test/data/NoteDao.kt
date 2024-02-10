@@ -43,9 +43,9 @@ interface NoteDao {
 
     // Сжимаем позиции после удаления записи
     @Query("update notes set position = position - 1 where position > :position")
-    suspend fun compressPositionsAfterDelete(position: Int)
+    suspend fun compressPositionsAfterPosition(position: Int)
 
     // Расширяем обратно позиции после восстановления удалённой записи
     @Query("update notes set position = position + 1 where position >= :position")
-    suspend fun stretchPositionsAfterUndoDelete(position: Int)
+    suspend fun stretchPositionsAfterPosition(position: Int)
 }
