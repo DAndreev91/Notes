@@ -2,7 +2,6 @@ package com.example.test.data
 
 import android.content.Context
 import androidx.room.Database
-import androidx.room.Entity
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
@@ -19,7 +18,9 @@ abstract class NoteRoomDatabase: RoomDatabase()  {
                     context,
                     NoteRoomDatabase::class.java,
                     "note_database"
-                ).fallbackToDestructiveMigration().build()
+                ).fallbackToDestructiveMigration()
+                //.createFromAsset("notes.db")
+                .build()
                 INSTANCE = instance
                 return instance
             }

@@ -6,7 +6,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.databinding.adapters.TextViewBindingAdapter.setTextSize
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -63,6 +62,7 @@ class NoteListAdapter(private val cardClick: (Int) -> Unit, private val checkCli
                     noteDesc.setTypeface(noteDesc.typeface, Typeface.BOLD)
                     noteDesc.textSize = 16.0F
                     card.elevation = 0F
+                    card.alpha = 1f
                 }
             }
         }

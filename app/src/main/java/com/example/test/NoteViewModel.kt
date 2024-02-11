@@ -441,7 +441,7 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
     fun toggleCheckNote(id: Int) {
         noteListTmp = allNotesForView.value!!.toMutableList()
         // Ищем заметку в списке по id
-        val note = noteDao.getNoteById(id)
+        val note = noteListTmp.last { it.id == id }
         val newNotePosition: Int
 
         // В зависимости от флага isChecked переставляем заметку либо в начало, либо в конец
