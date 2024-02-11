@@ -81,7 +81,7 @@ class RecyclerFragment: Fragment() {
                 if(actionState == ItemTouchHelper.ACTION_STATE_IDLE && drag) {
                     if (from != to) {
                         Log.d("FINISH MOVE NOTE", "FINISH MOVE NOTE! from = $from; to = $to")
-                        noteViewModel.moveNotesToDb()
+                        noteViewModel.moveNotesToDb(to)
                         drag = false
                         from = -1
                         to = -1

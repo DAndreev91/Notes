@@ -59,6 +59,7 @@ class NoteDialog(): DialogFragment() {
         binding = NoteIuBinding.inflate(layoutInflater)
         noteViewModel?.getNote(noteId)?.observe(requireParentFragment().viewLifecycleOwner) {
             Log.i("OPEN DIALOG", "id = $noteId")
+            // Если noteId = -1 тогда подставляем шаблон для пустой заметки
             note = it ?: newNoteTemplate
             bind(note)
         }
@@ -72,6 +73,7 @@ class NoteDialog(): DialogFragment() {
     override fun onCancel(dialog: DialogInterface) {
         if (isEditable) {
             note.desc = binding.noteDesc.text.toString()
+            // В зависимости от noteId сохраняем либо уже существующую заметку, либо новую с обновлением position у всех последующих
             if (noteId == -1) {
                 noteViewModel?.addNewNote(note)
             } else {

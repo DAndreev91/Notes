@@ -391,9 +391,9 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         }
     }
 
-    fun moveNotesToDb() {
+    fun moveNotesToDb(changedNoteNewPosition: Int) {
         // Нужно полностью пересобрать изменённые объекты внутри списка, а не менять свойства внутри
-        noteListTmpList = getNewNotesListAfterMoving(noteListTmp, preTo)
+        noteListTmpList = getNewNotesListAfterMoving(noteListTmp, changedNoteNewPosition)
         clearPrePositions()
         // Обновляем список в RV вызывая DiffUtil уже после отпускания/сброса элемента
         allNotesForView.value = noteListTmpList
@@ -441,17 +441,20 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
     fun toggleCheckNote(id: Int) {
         noteListTmp = allNotesForView.value!!.toMutableList()
         // Ищем заметку в списке по id
-        val note = noteListTmp.last { it.id == id }
+        val note = noteDao.getNoteById(id)
+        val newNotePosition: Int
 
         // В зависимости от флага isChecked переставляем заметку либо в начало, либо в конец
         Log.i("TOGGLE CHECK NOTE", "isChecked = ${note.isChecked}, pos = ${noteListTmp.lastIndexOf(note)}, note = ${note.desc}")
         if (!note.isChecked) {
             noteListTmp.remove(note)
             noteListTmp.add(note)
+            newNotePosition = noteListTmp.lastIndex
             Log.i("TOGGLE CHECK NOTE", "TRUE. add to last place")
         } else {
             noteListTmp.remove(note)
             noteListTmp.add(1, note)
+            newNotePosition = 1
             Log.i("TOGGLE CHECK NOTE", "FALSE. add to 1 place")
         }
         val c = Calendar.getInstance()
@@ -459,7 +462,7 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         note.doneDate = SimpleDateFormat("yyyy-MM-dd", Locale.GERMAN).format(c.time)
         note.isChecked = !note.isChecked
         // Update all list
-        moveNotesToDb()
+        moveNotesToDb(newNotePosition)
     }
 
     fun getNote(id: Int): LiveData<Note> {

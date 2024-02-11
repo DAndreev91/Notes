@@ -31,6 +31,9 @@ interface NoteDao {
     @Query("select * from notes where id = :itemId")
     fun getNote(itemId: Int): Flow<Note>
 
+    @Query("select * from notes where id = :itemId")
+    fun getNoteById(itemId: Int): Note
+
     // Обновляем позиции заметок при перемещении внутри списка с обновлением флагов и секции
     @Query("update notes " +
             "set position = case position " +
