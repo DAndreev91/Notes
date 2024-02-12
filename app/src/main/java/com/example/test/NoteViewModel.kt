@@ -31,21 +31,15 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
     //private val mainListFileName = "QueueFile.txt"
     //private val archiveListFileName = "QueueArchiveFile.txt"
 
-    //var notePosChange: MutableLiveData<NoteState> = MutableLiveData()
     var noteArchive: MutableLiveData<MutableList<Note>> = MutableLiveData()
 
-    //private var noteId: Int = -1
     private var deleteNotePos: Int = -1
     private lateinit var deleteNote: Note
-    //private val noteState = NoteState(-1,-1, false, 0, 0)
-    //private var doneSectionPos: Int = 0
     private val nullDateStr = "01.01.1900"
     //private val hoursBeforeArchiving = 0.01
     private var preFrom = 0
     private var preTo = 0
     private var noteListTmpList: List<Note> = mutableListOf()
-
-    //inner class NoteState(var prePos: Int, var postPos: Int, var isSectionChanged: Boolean, var sectionPrePos: Int, var sectionPostPos: Int)
 
     init {
         initLists()
@@ -58,33 +52,7 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
     fun setNotesFromDB() {
         allNotesForView.value = allNotes.value
     }
-/*
-    private fun updateNotesAfterMoving(tmpList: List<Note>, moveToPosition: Int) {
-        tmpList.forEachIndexed { index, note ->
-            note.pos = index
-            note.section = when (index) {
-                moveToPosition -> (getSectionFromPosition(tmpList, index)) ?: ACTIVE
-                else -> note.section
-            }
-            when (note.section) {
-                ACTIVE -> {
-                    note.isChecked = false
-                    note.isFuture = false
-                }
-                PLANNED -> {
-                    note.isChecked = false
-                    note.isFuture = true
-                }
-                DONE -> {
-                    note.isChecked = true
-                    note.isFuture = false
-                }
-            }
-        }
-    }
 
-
- */
     private fun getNewNotesListAfterMoving(tmpList: List<Note>, moveToPosition: Int): List<Note> {
         return tmpList.mapIndexed(){
             index, note ->
@@ -114,152 +82,6 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         }
     }
 
-    /*
-    private fun MutableList<Note>.refreshDoneDate() {
-        this.forEach {
-            if (!it.isSection) {
-                try {
-                    SimpleDateFormat("dd.MM.yyyy", Locale.GERMAN).parse(it.doneDate)
-                } catch (e: Exception) {
-                    it.doneDate = SimpleDateFormat("dd.MM.yyyy", Locale.GERMAN).format(Date())
-                }
-            } else {
-                it.doneDate = nullDateStr
-            }
-        }
-    }
-    */
-
-    /*
-    private suspend fun moveNotesToArchive() {
-        withContext(Dispatchers.IO) {
-            noteTempList = getMovingNoteList(noteList) { getOldNotes(it) }
-            addOldNotesToArchive(noteArchiveList, noteTempList)
-        }
-    }
-    */
-    /*
-    private fun addOldNotesToArchive(archiveList: MutableList<Note>, tmpNoteList: MutableList<Note>) {
-        var tmpDate = nullDateStr
-        var tmpSectionPos = 0
-        tmpNoteList.forEach {
-            if (tmpDate != it.doneDate) {
-                tmpDate = it.doneDate
-                val tmpSection = Note(tmpDate, "", true,
-                    isFuture = false,
-                    doneDate = tmpDate,
-                    isSection = true
-                )
-                tmpSectionPos = archiveList.indexOf(tmpSection)
-                if (tmpSectionPos == -1) {
-                    // Add search right tmpSectionPos value inside collection in future
-                    tmpSectionPos = 0
-                    archiveList.add(tmpSectionPos, tmpSection)
-                }
-                archiveList.add(tmpSectionPos+1, it)
-            } else {
-                archiveList.add(tmpSectionPos+1, it)
-            }
-        }
-    }
-
-     */
-    /*
-    private fun getMovingNoteList(list: MutableList<Note>, getSubList: (MutableList<Note>) -> MutableList<Note>): MutableList<Note> {
-        val tmpList = getSubList(list)
-        //Log.e("getMovingNoteList", tmpList.size.toString())
-        if (tmpList.size > 0) {
-            list.removeAll(tmpList)
-            tmpList.sortWith(compareByDescending<Note> { SimpleDateFormat("dd.MM.yyyy", Locale.GERMAN).parse(it.doneDate) }.thenByDescending { it.isSection })
-        }
-        return tmpList
-    }
-
-     */
-    /*
-    private fun getOldNotes(list: MutableList<Note>): MutableList<Note> {
-        //Log.e("getOldNotesBorders", "list size = ${list.size}")
-        // get Done section position
-        val donePos = try {
-            list.indexOf(doneSection)+1
-        } catch(e: NoSuchElementException) {
-            list.size-1
-        }
-        //Log.e("getOldNotes", "from $donePos to ${list.size-1}")
-        // get all notes in that section and filter for notes older 1d
-        return try{
-            val tmpList = list.subList(donePos, list.size).filter {
-                val c = Calendar.getInstance()
-                val diff = c.time.time - SimpleDateFormat("dd.MM.yyyy", Locale.GERMAN).parse(it.doneDate)!!.time
-                val seconds = diff / 1000
-                val minutes = seconds / 60
-                val hours = minutes / 60
-                //Log.e("getOldNotes", "for ${it.doneDate} filter diff = $diff min = $minutes hours = $hours days = $days")
-                hours >= hoursBeforeArchiving
-            }.toMutableList()
-            //Log.e("getOldNotes", "tmpList size = ${tmpList.size}")
-            tmpList
-        } catch (e: NoSuchElementException) {
-            mutableListOf()
-        } catch (e: IllegalArgumentException) {
-            mutableListOf()
-        }
-    }
-
-     */
-    /*
-    // Adding sections no main list when they lost after collapses =)
-    private fun addMainSections() {
-        if (noteList.getOrNull(0)?.title != "Active" && (noteList.getOrNull(0)?.isSection != true)) {
-            noteList.add(0, activeSection)
-        }
-        if (noteList.indexOf(plannedSection) == -1) {
-            // limp leg
-            val oldSectionPos = noteList.indexOf(Note("Planned", "", false,
-                isFuture = false,
-                doneDate = nullDateStr,
-                isSection = true
-            ))
-            if (oldSectionPos != -1) {
-                noteList[oldSectionPos].isFuture = true
-            } else {
-                // Add plannedSection on position of first note with isFuture == true
-                // or on next position after last item with isChecked == false
-                val futurePos = try {
-                    noteList.indexOf(noteList.first { it.isFuture })
-                } catch(e: NoSuchElementException) {
-                    -1
-                }
-                if (futurePos != -1) {
-                    noteList.add(futurePos, plannedSection)
-                } else {
-                    try {
-                        noteList.add(noteList.indexOf(noteList.last { !it.isChecked })+1, plannedSection)
-                    } catch(e: NoSuchElementException) {
-                        noteList.add(plannedSection)
-                    }
-
-                }
-            }
-        }
-        if (noteList.indexOf(doneSection) == -1) {
-            // Add doneSection on position of first note with isChecked == true
-            // or on last position
-            val donePos = try {
-                noteList.indexOf(noteList.first { it.isChecked })
-            } catch(e: NoSuchElementException) {
-                -1
-            }
-            if (donePos != -1) {
-                noteList.add(donePos, doneSection)
-            } else {
-                noteList.add(doneSection)
-            }
-        }
-    }
-
-     */
-
     fun addArchiveSectionsAndSortList() {
         noteArchiveList.sortWith(compareByDescending<Note> { SimpleDateFormat("dd.MM.yyyy", Locale.GERMAN).parse(it.doneDate)}.thenByDescending {it.isSection})
         var sectionDate: String = nullDateStr
@@ -286,88 +108,10 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
             null
         }
     }
-/*
-    private fun setNoteSectionOnNewPos(noteList: List<Note>, to: Int) {
-        // Определяем на какой позиции будут записи секций и откуда соответственно искать первую секцию
-        val note = noteList[to]
-        note.section = (getSectionFromPosition(noteList, to)) ?: ACTIVE
-        when (note.section) {
-            ACTIVE -> {
-                note.isChecked = false
-                note.isFuture = false
-            }
-            PLANNED -> {
-                note.isChecked = false
-                note.isFuture = true
-            }
-            DONE -> {
-                note.isChecked = true
-                note.isFuture = false
-            }
-        }
-        Log.i("MOVE NOTE", "isChecked = ${noteList[to].isChecked}; isFuture = ${noteList[to].isFuture}")
-    }
-
-
- */
     private fun setNoteArchive() {
         noteArchive.value = noteArchiveList
     }
 
-/*
-    private fun setIsChecked(note: Note, isChecked: Boolean) {
-        note.isChecked = isChecked
-        val c = Calendar.getInstance()
-        note.doneDate = SimpleDateFormat("yyyy-MM-dd", Locale.GERMAN).format(c.time)
-        Log.e("doneDate", note.doneDate)
-    }
-
-
- */
-    /*
-    private fun refreshSections() {
-        if (preSection != null) {
-            noteState.sectionPrePos = noteList.indexOf(preSection)
-        } else {
-            noteState.sectionPrePos = -1
-        }
-        if (postSection != null) {
-            noteState.sectionPostPos = noteList.indexOf(postSection)
-        } else {
-            noteState.sectionPostPos = -1
-        }
-
-        // for moving notes we change noteList[pos].isChecked if note changing sections from/to "Done"
-        if (preSection != null && postSection != null &&
-                preSection!!.title != postSection!!.title) {
-            setIsChecked(noteList[noteState.postPos], postSection!!.title == "Done")
-            noteList[noteState.postPos].isFuture = postSection!!.title == "Planned"
-            noteState.isSectionChanged = true
-        }
-
-        doneSectionPos = noteList.indexOf(noteList.first { note -> note.title == "Done" })
-
-        //noteArchive.value = readArchive()
-        setNoteArchive()
-
-    }
-
-     */
-
-    /*
-    private fun refreshNoteState(from: Int, to: Int, isSectionChanged: Boolean, func:() -> Unit) {
-        preSection = refreshSection(from)
-        func()
-        postSection = refreshSection(to)
-        noteState.prePos = from
-        noteState.postPos = to
-        noteState.isSectionChanged = isSectionChanged
-        refreshSections()
-        setNoteArchive()
-        notePosChange.value = noteState
-    }
-
-     */
 
     private fun clearPrePositions() {
         preFrom = -1
@@ -473,44 +217,6 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         return allNotesForView.value?.get(position)?.isSection ?: false
     }
 
-    // Methods for noteList persistence
-    /*
-    private fun getListData(fileName: String): MutableList<Note> {
-        var notesFromDb = allNotes.value?.map {
-            Note(it.title, it.desc, it.isChecked, it.isFuture, it.doneDate, it.isSection)
-        }?.toMutableList()
-
-        // Just workaround for error in db (too many sections)
-        /*if (notesFromDb?.size ?: 0 > 12) {
-            notesFromDb = null
-        }*/
-
-        return notesFromDb ?: run {
-            val text = readFromFile(fileName)
-
-            val gson = GsonBuilder().create()
-            gson.fromJson(text, Array<Note>::class.java).toMutableList()
-        }
-    }
-
-     */
-    /*
-    private fun readDataFromExtStorage(fileName: String): String {
-        return  File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), fileName).readText()
-    }
-
-     */
-    /*
-    private fun initData(fileName: String) {
-        val text = readDataFromExtStorage(fileName)
-        val file = File(getApplication<Application>().filesDir, fileName)
-        if (!file.exists()) {
-            file.createNewFile()
-        }
-        file.writeText(text)
-    }
-     */
-
     fun writeToAssets() {
         // don't change notes list here
         viewModelScope.launch {
@@ -562,45 +268,6 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
             "[]"
         }
         return v
-    }
-
-     */
-
-    /*
-    private fun readArchive(): MutableList<Note> {
-        doneSectionPos = noteList.indexOf(noteList.first { note -> note.title == "Done" })
-        Log.e("Last", noteList.subList(doneSectionPos, noteList.size).last().desc)
-        return noteList.subList(doneSectionPos, noteList.size).toMutableList()
-    }
-     */
-    /*
-    private fun noteToNote(note: com.example.test.Note, pos: Int, section: String) : com.example.test.data.Note {
-        //noteList.map {  }
-        return com.example.test.data.Note (
-            title = note.title,
-            desc = note.desc,
-            doneDate = note.doneDate,
-            isChecked = note.isChecked,
-            isFuture = note.isFuture,
-            isSection = note.isSection,
-            pos = pos,
-            section = section
-        )
-    }
-
-     */
-    /*
-    private fun noteListToNoteList(list: MutableList<Note>) : MutableList<com.example.test.data.Note> {
-        val plannedSectionPos = list.indexOf(plannedSection)
-        val doneSectionPos = list.indexOf(doneSection)
-        return list.mapIndexed { index, note ->
-            val section = when(index) {
-                in 0 until plannedSectionPos -> "ACTIVE"
-                in plannedSectionPos until doneSectionPos -> "PLANNED"
-                else -> "DONE"
-            }
-            noteToNote(note, index, section)
-        }.toMutableList()
     }
 
      */
