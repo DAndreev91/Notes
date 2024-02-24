@@ -35,9 +35,7 @@ class HistoryFragment : Fragment() {
     ): View {
         binding = FragmentHistoryBinding.inflate(layoutInflater)
 
-        noteViewModel.allNotes.observe(requireActivity()) {
-            noteViewModel.initLists()
-        }
+
 
         return binding.root
     }
@@ -45,21 +43,16 @@ class HistoryFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        val adapter = NoteListAdapter({ pos -> noteViewModel.allNotes.value?.get(pos)?.id?.let {
-            openDialog(
-                it
-            )
-        } }, {null})
+        val adapter = NoteListAdapter({ id -> openDialog(id)}, {null})
         val recyclerView = binding.recyclerViewIdHistory
 
         recyclerView.layoutManager = LinearLayoutManager(activity)
         recyclerView.adapter = adapter
         recyclerView.itemAnimator = DefaultItemAnimator()
 
-        // Observe
-        noteViewModel.allNotes.observe(requireActivity()) {
-            // it.let { adapter.submitList(it) }
+        // Observe archived notes that transforms to notes
+        noteViewModel.allArchiveNotes.observe(viewLifecycleOwner) {
+            it.let { adapter.submitList(noteViewModel.notesArchiveToNotes(it)) }
         }
 
         ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.RIGHT, ItemTouchHelper.RIGHT){
@@ -75,40 +68,39 @@ class HistoryFragment : Fragment() {
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder
             ): Int {
-                if (noteViewModel.noteArchiveList[viewHolder.adapterPosition].isSection) {
+                if (noteViewModel.isArchivedNoteSection(viewHolder.adapterPosition)) {
                     return 0
                 }
                 return super.getSwipeDirs(recyclerView, viewHolder)
             }
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                if(!noteViewModel.noteArchiveList[viewHolder.adapterPosition].isSection) {
-                    noteViewModel.deleteNote(viewHolder.adapterPosition)
+                if(!noteViewModel.isArchivedNoteSection(viewHolder.adapterPosition)) {
+                    noteViewModel.deleteArchiveNote(viewHolder.adapterPosition)
 
                     Snackbar.make(recyclerView, "Deleted archive note", Snackbar.LENGTH_LONG)
                         .setAction("Undo") {
-                            noteViewModel.undoNote()
+                            noteViewModel.undoArchiveNote()
                         }.show()
                 }
             }
         }).attachToRecyclerView(recyclerView)
 
-        binding.fabH.setOnClickListener {
+        /*binding.fabH.setOnClickListener {
             noteViewModel.addArchiveSectionsAndSortList()
             adapter.notifyDataSetChanged()
-        }
+        }*/
     }
 
     override fun onPause() {
-        noteViewModel.writeHistToAssets()
+        //noteViewModel.writeHistToAssets()
         super.onPause()
     }
 
     private fun openDialog (pos: Int) {
         val dialog = NoteDialog()
-        dialog.setDialogNote(pos)
-        dialog.setTextNonEditable()
-        dialog.show(parentFragmentManager, "1")
+        dialog.show(childFragmentManager, "1")
+        dialog.setDialogNote(id)
     }
 
     companion object {

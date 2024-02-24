@@ -37,6 +37,8 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
 
     private var deleteNotePos: Int = -1
     private lateinit var deleteNote: Note
+    private var deleteArchiveNotePos: Int = -1
+    private lateinit var deleteArchiveNote: NoteArchive
     private val nullDateStr = "01.01.1900"
     private val hoursBeforeArchiving = 0.01
     private var preFrom = 0
@@ -170,6 +172,26 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         }
     }
 
+    fun deleteArchiveNote(pos: Int) {
+        // перевести на работу с другим списком
+        allArchiveNotes.value?.get(pos)?.let {
+            deleteArchiveNotePos = pos
+            deleteArchiveNote = it
+            viewModelScope.launch {
+                noteDao.deleteArchive(it)
+            }
+        }
+    }
+
+    fun undoArchiveNote() {
+        if (deleteArchiveNotePos != -1) {
+            viewModelScope.launch {
+                noteDao.insertArchive(deleteArchiveNote)
+            }
+            deleteNotePos = -1
+        }
+    }
+
     fun addNewNote(note: Note) {
         // adding new item
         viewModelScope.launch {
@@ -217,6 +239,10 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
 
     fun isNoteSection(position: Int): Boolean {
         return allNotesForView.value?.get(position)?.isSection ?: false
+    }
+
+    fun isArchivedNoteSection(position: Int): Boolean {
+        return allArchiveNotes.value?.get(position)?.isSection ?: false
     }
 
     fun writeToAssets() {
@@ -295,6 +321,22 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
             noteDao.deleteNotes(notesToArchive)
         }
     }
+
+    fun notesArchiveToNotes(list: List<NoteArchive>): List<Note> {
+        return list.map {
+            Note(
+                id = it.id,
+                title = it.title,
+                desc = it.desc,
+                doneDate = it.doneDate,
+                isFuture = false,
+                isChecked = true,
+                isSection = it.isSection,
+                pos = it.pos,
+                section = it.section
+            )
+        }
+    }
 }
 
 class NoteViewModelFactory(private val noteDao: NoteDao, private val application: Application): ViewModelProvider.Factory {
@@ -305,5 +347,4 @@ class NoteViewModelFactory(private val noteDao: NoteDao, private val application
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
-
 }
