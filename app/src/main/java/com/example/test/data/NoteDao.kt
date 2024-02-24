@@ -51,4 +51,16 @@ interface NoteDao {
     // Расширяем обратно позиции после восстановления удалённой записи
     @Query("update notes set position = position + 1 where position >= :position")
     suspend fun stretchPositionsAfterPosition(position: Int)
+
+    @Query("select * from notes_archive order by position desc")
+    fun getArchiveNotes(): Flow<List<NoteArchive>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertArchiveAll(list: List<NoteArchive>)
+
+    @Query("select * from notes where section = 'Done' and date('now') - done_date > :hoursBeforeArchive order by done_date")
+    suspend fun getNotesNeededToArchive(hoursBeforeArchive: Double): List<Note>
+
+    @Delete
+    suspend fun deleteNotes(list: List<Note>)
 }

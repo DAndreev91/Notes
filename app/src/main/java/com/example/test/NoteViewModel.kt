@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.test.data.Note
+import com.example.test.data.NoteArchive
 import com.example.test.data.NoteDao
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -24,6 +25,7 @@ const val DONE = "Done"
 class NoteViewModel(private val noteDao: NoteDao, application: Application) : AndroidViewModel(application) {
 
     val allNotes: LiveData<List<Note>> = noteDao.getNotes().asLiveData()
+    val allArchiveNotes: LiveData<List<NoteArchive>> = noteDao.getArchiveNotes().asLiveData()
     val allNotesForView: MutableLiveData<List<Note>> = MutableLiveData()
     private var noteListTmp = mutableListOf<Note>()
 
@@ -36,7 +38,7 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
     private var deleteNotePos: Int = -1
     private lateinit var deleteNote: Note
     private val nullDateStr = "01.01.1900"
-    //private val hoursBeforeArchiving = 0.01
+    private val hoursBeforeArchiving = 0.01
     private var preFrom = 0
     private var preTo = 0
     private var noteListTmpList: List<Note> = mutableListOf()
@@ -271,6 +273,28 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
     }
 
      */
+
+    private fun moveNotesToArchive() {
+        viewModelScope.launch {
+            // Get notes for archive
+            val notesToArchive = noteDao.getNotesNeededToArchive(hoursBeforeArchiving)
+            // Transform notes to noteArchive and set new position to the end of allArchiveNotes list
+            val archiveNotes = notesToArchive.mapIndexed { index, it ->
+                NoteArchive(
+                    title = it.title,
+                    desc = it.desc,
+                    doneDate = it.doneDate,
+                    isSection = it.isSection,
+                    pos = (allArchiveNotes.value?.size ?: 0) + index,
+                    section = it.section
+                )
+            }
+            // Insert new noteArchive to table
+            noteDao.insertArchiveAll(archiveNotes)
+            // Delete inserted notes from table "notes"
+            noteDao.deleteNotes(notesToArchive)
+        }
+    }
 }
 
 class NoteViewModelFactory(private val noteDao: NoteDao, private val application: Application): ViewModelProvider.Factory {
