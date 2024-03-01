@@ -63,6 +63,7 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
             var isChecked = note.isChecked
             var isFuture = note.isFuture
             val isSection = note.isSection
+            var doneDate = note.doneDate
             val section = when (index) {
                 moveToPosition -> (getSectionFromPosition(tmpList, index)) ?: ACTIVE
                 else -> note.section
@@ -79,10 +80,11 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
                 DONE -> {
                     isChecked = true
                     isFuture = false
+                    doneDate = SimpleDateFormat("yyyy-MM-dd", Locale.GERMAN).format(Calendar.getInstance().time)
                 }
             }
             Log.i("MOVE NOTE. NEW LIST", "$index. isChecked = $isChecked; isFuture = $isFuture; isSection = $isSection; section = $section")
-            Note(note.id, note.title, note.desc, isChecked, isFuture, note.doneDate, isSection, index, section)
+            Note(note.id, note.title, note.desc, isChecked, isFuture, doneDate, isSection, index, section)
         }
     }
 
@@ -304,8 +306,12 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         viewModelScope.launch {
             // Get notes for archive
             val notesToArchive = noteDao.getNotesNeededToArchive(hoursBeforeArchiving)
+
             // Transform notes to noteArchive and set new position to the end of allArchiveNotes list
             val archiveNotes = notesToArchive.mapIndexed { index, it ->
+                // Так как формат doneDate yyyy-MM-dd то просто проверяем каждую уникальную doneDate
+                // из списка notesToArchive на наличие в notes_archive и добавляем при необходимости в archiveNotes
+
                 NoteArchive(
                     title = it.title,
                     desc = it.desc,
