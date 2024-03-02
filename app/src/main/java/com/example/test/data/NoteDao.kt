@@ -64,7 +64,7 @@ interface NoteDao {
     @Delete
     suspend fun deleteArchive(item: NoteArchive)
 
-    @Query("select * from notes where section = 'Done' and date('now') - date(done_date) > :hoursBeforeArchive order by date(done_date)")
+    @Query("select * from notes where section = 'Done' and julianday('now') - julianday(done_date) > :hoursBeforeArchive and is_section = 0 order by date(done_date)")
     suspend fun getNotesNeededToArchive(hoursBeforeArchive: Double): List<Note>
 
     @Delete
