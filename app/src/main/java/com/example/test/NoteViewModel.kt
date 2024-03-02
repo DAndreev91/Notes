@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.abs
+import kotlin.text.Typography.section
 
 const val ACTIVE = "Active"
 const val PLANNED = "Planned"
@@ -304,21 +305,43 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
 
     private fun moveNotesToArchive() {
         viewModelScope.launch {
+            var doneDate = ""
+            val archiveNotes: MutableList<NoteArchive> = mutableListOf()
+            var newPos = allArchiveNotes.value?.size ?: 0
+
             // Get notes for archive
             val notesToArchive = noteDao.getNotesNeededToArchive(hoursBeforeArchiving)
 
-            // Transform notes to noteArchive and set new position to the end of allArchiveNotes list
-            val archiveNotes = notesToArchive.mapIndexed { index, it ->
+            // Adding each notes to noteArchive with sections and set new position to the end of allArchiveNotes list
+            notesToArchive.forEach { noteArchive ->
+
                 // Так как формат doneDate yyyy-MM-dd то просто проверяем каждую уникальную doneDate
                 // из списка notesToArchive на наличие в notes_archive и добавляем при необходимости в archiveNotes
+                if (doneDate != noteArchive.doneDate) {
+                    if (noteDao.checkIfArchiveSectionExist(noteArchive.doneDate) == 0) {
+                        archiveNotes.add(
+                            NoteArchive(
+                                title = noteArchive.title,
+                                desc = noteArchive.desc,
+                                doneDate = noteArchive.doneDate,
+                                isSection = true,
+                                pos = newPos++,
+                                section = noteArchive.section
+                            )
+                        )
+                    }
+                    doneDate = noteArchive.doneDate
+                }
 
-                NoteArchive(
-                    title = it.title,
-                    desc = it.desc,
-                    doneDate = it.doneDate,
-                    isSection = it.isSection,
-                    pos = (allArchiveNotes.value?.size ?: 0) + index,
-                    section = it.section
+                archiveNotes.add(
+                    NoteArchive(
+                        title = noteArchive.title,
+                        desc = noteArchive.desc,
+                        doneDate = noteArchive.doneDate,
+                        isSection = noteArchive.isSection,
+                        pos = newPos++,
+                        section = noteArchive.section
+                    )
                 )
             }
             // Insert new noteArchive to table

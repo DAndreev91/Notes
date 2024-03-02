@@ -52,7 +52,7 @@ interface NoteDao {
     @Query("update notes set position = position + 1 where position >= :position")
     suspend fun stretchPositionsAfterPosition(position: Int)
 
-    @Query("select * from notes_archive order by done_date desc")
+    @Query("select * from notes_archive order by done_date desc, is_section desc")
     fun getArchiveNotes(): Flow<List<NoteArchive>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -64,9 +64,12 @@ interface NoteDao {
     @Delete
     suspend fun deleteArchive(item: NoteArchive)
 
-    @Query("select * from notes where section = 'Done' and date('now') - date(done_date) > :hoursBeforeArchive order by done_date")
+    @Query("select * from notes where section = 'Done' and date('now') - date(done_date) > :hoursBeforeArchive order by date(done_date)")
     suspend fun getNotesNeededToArchive(hoursBeforeArchive: Double): List<Note>
 
     @Delete
     suspend fun deleteNotes(list: List<Note>)
+
+    @Query("select count(1) from notes_archive where is_section = 1 and done_date = :doneDate")
+    suspend fun checkIfArchiveSectionExist(doneDate: String): Int
 }
