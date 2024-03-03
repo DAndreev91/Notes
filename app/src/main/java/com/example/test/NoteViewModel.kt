@@ -16,7 +16,6 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.abs
-import kotlin.text.Typography.section
 
 const val ACTIVE = "Active"
 const val PLANNED = "Planned"
@@ -29,18 +28,16 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
     val allArchiveNotes: LiveData<List<NoteArchive>> = noteDao.getArchiveNotes().asLiveData()
     val allNotesForView: MutableLiveData<List<Note>> = MutableLiveData()
     private var noteListTmp = mutableListOf<Note>()
-
-    lateinit var noteArchiveList: MutableList<Note>
     //private val mainListFileName = "QueueFile.txt"
     //private val archiveListFileName = "QueueArchiveFile.txt"
 
-    var noteArchive: MutableLiveData<MutableList<Note>> = MutableLiveData()
+    //var noteArchive: MutableLiveData<MutableList<Note>> = MutableLiveData()
 
     private var deleteNotePos: Int = -1
     private lateinit var deleteNote: Note
     private var deleteArchiveNotePos: Int = -1
     private lateinit var deleteArchiveNote: NoteArchive
-    private val nullDateStr = "01.01.1900"
+    //private val nullDateStr = "01.01.1900"
     private val hoursBeforeArchiving = 0.01
     private var preFrom = 0
     private var preTo = 0
@@ -49,9 +46,8 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
     init {
         initLists()
     }
-    fun initLists() {
-        noteArchiveList = mutableListOf()
-        setNoteArchive()
+    private fun initLists() {
+        moveNotesToArchive()
     }
 
     fun setNotesFromDB() {
@@ -89,34 +85,12 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         }
     }
 
-    fun addArchiveSectionsAndSortList() {
-        noteArchiveList.sortWith(compareByDescending<Note> { SimpleDateFormat("dd.MM.yyyy", Locale.GERMAN).parse(it.doneDate)}.thenByDescending {it.isSection})
-        var sectionDate: String = nullDateStr
-        noteArchiveList.forEachIndexed { index, note ->
-            // First item in section after sort must be the section
-            if (sectionDate != note.doneDate) {
-                sectionDate = note.doneDate
-                if (!note.isSection) {
-                    /*noteArchiveList.add(index, Note(sectionDate, "", true,
-                        isFuture = false,
-                        doneDate = sectionDate,
-                        isSection = true
-                    ))*/
-                    sectionDate = note.doneDate
-                }
-            }
-        }
-    }
-
     private fun getSectionFromPosition(noteList: List<Note>, to: Int): String? {
         return  try {
             noteList.filterIndexed { index, note -> note.isSection && index <= to }.last().section
         } catch (e: NoSuchElementException) {
             null
         }
-    }
-    private fun setNoteArchive() {
-        noteArchive.value = noteArchiveList
     }
 
 
@@ -257,9 +231,9 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
         //writeToAsset(noteArchiveList, archiveListFileName)
     }
 
-    fun writeHistToAssets() {
+    /*fun writeHistToAssets() {
         //writeToAsset(noteArchiveList, archiveListFileName)
-    }
+    }*/
     /*
     private fun writeToAsset(list: MutableList<Note>, fileName: String) {
         try {
@@ -321,7 +295,7 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
                     if (noteDao.checkIfArchiveSectionExist(noteArchive.doneDate) == 0) {
                         archiveNotes.add(
                             NoteArchive(
-                                title = noteArchive.title,
+                                title = noteArchive.doneDate,
                                 desc = noteArchive.desc,
                                 doneDate = noteArchive.doneDate,
                                 isSection = true,
