@@ -19,7 +19,7 @@ abstract class NoteRoomDatabase: RoomDatabase()  {
                     NoteRoomDatabase::class.java,
                     "note_database"
                 ).fallbackToDestructiveMigration()
-                //.createFromAsset("notes.db")
+                .createFromAsset("note_database.db")
                 .build()
                 INSTANCE = instance
                 return instance
