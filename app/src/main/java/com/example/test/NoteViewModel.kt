@@ -38,7 +38,7 @@ class NoteViewModel(private val noteDao: NoteDao, application: Application) : An
     private var deleteArchiveNotePos: Int = -1
     private lateinit var deleteArchiveNote: NoteArchive
     //private val nullDateStr = "01.01.1900"
-    private val hoursBeforeArchiving = 0.01
+    private val hoursBeforeArchiving = 0.33
     private var preFrom = 0
     private var preTo = 0
     private var noteListTmpList: List<Note> = mutableListOf()
