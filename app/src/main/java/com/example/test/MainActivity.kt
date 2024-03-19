@@ -25,17 +25,6 @@ class MainActivity : AppCompatActivity() {
         val viewPager = findViewById<ViewPager2>(R.id.pager)
         viewPager.adapter = ScreenSlidePagerAdapter(this)
         viewPager.currentItem = 1
-
-        val uri = Uri.parse("package:${BuildConfig.APPLICATION_ID}")
-
-        if (!Environment.isExternalStorageManager()) {
-            startActivity(
-                Intent(
-                    Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
-                    uri
-                )
-            )
-        }
     }
 
     private inner class ScreenSlidePagerAdapter(fa: FragmentActivity) : FragmentStateAdapter(fa) {
