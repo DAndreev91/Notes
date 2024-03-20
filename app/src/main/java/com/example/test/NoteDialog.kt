@@ -15,9 +15,11 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+const val NOTE_ID = "note_id"
+
 class NoteDialog(): DialogFragment() {
     lateinit var note: Note
-    private var noteId: Int = 0
+    private var noteId: Int = -1
     private var isEditable = true
     private lateinit var binding: NoteIuBinding
     private val newNoteTemplate = Note(
@@ -41,6 +43,12 @@ class NoteDialog(): DialogFragment() {
         noteId = id
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(NOTE_ID, noteId)
+        Log.i("OPEN DIALOG", "onSaveInstanceState $noteId")
+    }
+
     private fun bind(newNote: Note) {
         binding.apply {
             noteDesc.setText(newNote.desc)
@@ -56,6 +64,10 @@ class NoteDialog(): DialogFragment() {
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        Log.i("OPEN DIALOG", "noteId = $noteId; savedInstanceState?.getInt(NOTE_ID) = ${savedInstanceState?.getInt(NOTE_ID)?: -1}")
+        if (noteId == -1) {
+            noteId = savedInstanceState?.getInt(NOTE_ID)?: -1
+        }
         binding = NoteIuBinding.inflate(layoutInflater)
         noteViewModel?.getNote(noteId)?.observe(requireParentFragment().viewLifecycleOwner) {
             Log.i("OPEN DIALOG", "id = $noteId")
@@ -65,11 +77,6 @@ class NoteDialog(): DialogFragment() {
         }
         return AlertDialog.Builder(requireActivity()).setView(binding.root).create()
     }
-
-    fun setTextNonEditable() {
-        isEditable = false
-    }
-
     override fun onCancel(dialog: DialogInterface) {
         if (isEditable) {
             note.desc = binding.noteDesc.text.toString()
